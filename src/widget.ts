@@ -1,60 +1,62 @@
-// Copyright (c) Samuel Zhang
-// Distributed under the terms of the Modified BSD License.
-
-import {
-    DOMWidgetModel,
-    DOMWidgetView,
-    ISerializers,
-} from '@jupyter-widgets/base';
-import ReactWidget from "./ReactWidget"
+import { DOMWidgetModel, DOMWidgetView, ISerializers } from '@jupyter-widgets/base';
 import React from 'react';
 import ReactDOM from 'react-dom';
-
+import TurtleQuest from './quest';
 import { MODULE_NAME, MODULE_VERSION } from './version';
 
-// Import the CSS
 import '../css/widget.css';
 
-// Your widget state goes here. Make sure to update the corresponding
-// Python state in example.py
-const defaultModelProperties = {
-    value: 'Hello World',
+export interface TurtleState {
+    pen: number;
+    color: string;
+    pos_x: number;
+    pos_y: number;
+    change: boolean;
+    speed: number;
 }
 
-export type WidgetModelState = typeof defaultModelProperties
+export interface WidgetModelState {
+    _model_module: string;
+    _model_name: string;
+    _model_module_version: string;
+    _view_module: string;
+    _view_name: string;
+    _view_module_version: string;
+    _view_count: number;
+    points: Array<TurtleState>;
+}
 
-export class ExampleModel extends DOMWidgetModel {
-    defaults() {
+export class TurtleModel extends DOMWidgetModel {
+    defaults(): WidgetModelState {
         return {
             ...super.defaults(),
-            _model_name: ExampleModel.model_name,
-            _model_module: ExampleModel.model_module,
-            _model_module_version: ExampleModel.model_module_version,
-            _view_name: ExampleModel.view_name,
-            _view_module: ExampleModel.view_module,
-            _view_module_version: ExampleModel.view_module_version,
-            ...defaultModelProperties
+            _model_name: TurtleModel.model_name,
+            _model_module: TurtleModel.model_module,
+            _model_module_version: TurtleModel.model_module_version,
+            _view_name: TurtleModel.view_name,
+            _view_module: TurtleModel.view_module,
+            _view_module_version: TurtleModel.view_module_version,
+            points: [],
         };
     }
 
     static serializers: ISerializers = {
         ...DOMWidgetModel.serializers,
-        // Add any extra serializers here
     };
 
-    static model_name = 'ExampleModel';
+    static model_name = 'TurtleModel';
     static model_module = MODULE_NAME;
     static model_module_version = MODULE_VERSION;
-    static view_name = 'ExampleView'; // Set to null if no view
-    static view_module = MODULE_NAME; // Set to null if no view
+    static view_name = 'TurtleView';
+    static view_module = MODULE_NAME;
     static view_module_version = MODULE_VERSION;
 }
 
-export class ExampleView extends DOMWidgetView {
-    render() {
+export class TurtleView extends DOMWidgetView {
+    render(): void {
         this.el.classList.add('custom-widget');
 
-        const component = React.createElement(ReactWidget, {
+        const component = React.createElement(TurtleQuest, {
             model: this.model,
         });
         ReactDOM.render(component, this.el);

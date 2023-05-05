@@ -4,9 +4,5 @@
 # Copyright (c) Samuel Zhang.
 # Distributed under the terms of the Modified BSD License.
 
-"""
-Information about the frontend package of the widgets.
-"""
-
-module_name = "iturtle"
-module_version = "^0.1.0"
+version_info = (0, 1, 0)
+__version__ = ".".join(map(str, version_info))

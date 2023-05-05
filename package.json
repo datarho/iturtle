@@ -1,7 +1,7 @@
 {
     "name": "iturtle",
     "version": "0.1.0",
-    "description": "A Custom Jupyter Widget Library",
+    "description": "Interactive turtle widget for Jupyter Lab",
     "keywords": [
         "jupyter",
         "jupyterlab",
