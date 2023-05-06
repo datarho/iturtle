@@ -12,4 +12,4 @@ def test_turtle_creation():
     Check turtle basic properties are set.
     """
     turtle = Turtle()
-    assert turtle.pen == 1
+    assert turtle.pen is True

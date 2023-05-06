@@ -3,17 +3,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import TurtleQuest from './quest';
 import { MODULE_NAME, MODULE_VERSION } from './version';
+import { TurtleAction } from './interface';
 
 import '../css/widget.css';
 
-export interface TurtleState {
-    pen: number;
-    color: string;
-    pos_x: number;
-    pos_y: number;
-    change: boolean;
-    speed: number;
-}
 
 export interface WidgetModelState {
     _model_module: string;
@@ -23,7 +16,11 @@ export interface WidgetModelState {
     _view_name: string;
     _view_module_version: string;
     _view_count: number;
-    points: Array<TurtleState>;
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+    actions: Array<TurtleAction>;
 }
 
 export class TurtleModel extends DOMWidgetModel {
@@ -36,7 +33,7 @@ export class TurtleModel extends DOMWidgetModel {
             _view_name: TurtleModel.view_name,
             _view_module: TurtleModel.view_module,
             _view_module_version: TurtleModel.view_module_version,
-            points: [],
+            actions: [],
         };
     }
 
