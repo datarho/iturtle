@@ -1,9 +1,9 @@
-# iturtle
+# Interactive Turtle
 
 [![Build Status](https://travis-ci.org/datarho.tech/iturtle.svg?branch=master)](https://travis-ci.org/datarho.tech/iturtle)
 [![codecov](https://codecov.io/gh/datarho.tech/iturtle/branch/master/graph/badge.svg)](https://codecov.io/gh/datarho.tech/iturtle)
 
-A Custom Jupyter Widget Library
+A custom Jupyter widget for interactive turtle.
 
 ## Installation
 
@@ -37,20 +37,21 @@ yarn run build
 
 ### How to see your changes
 
-#### Typescript:
-
 If you use JupyterLab to develop then you can watch the source directory and run JupyterLab at the same time in different
 terminals to watch for changes in the extension's source and automatically rebuild the widget.
 
+Watch the source directory in one terminal, automatically rebuilding when needed:
+
 ```bash
-# Watch the source directory in one terminal, automatically rebuilding when needed
 yarn run watch
-# Run JupyterLab in another terminal
-jupyter lab
+```
+
+Run JupyterLab in another terminal:
+
+```bash
+jupyter lab --no-browser
 ```
 
 After a change wait for the build to finish and then refresh your browser and the changes should take effect.
-
-#### Python:
 
 If you make a change to the python code then you will need to restart the notebook kernel to have it take effect.

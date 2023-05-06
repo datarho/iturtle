@@ -29,7 +29,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 name = 'iturtle'
 
 # Get the version
-version = get_version(pjoin(name, '_version.py'))
+version = get_version(pjoin(name, 'version.py'))
 
 
 # Representative files that should exist after a successful build

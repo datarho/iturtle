@@ -73,7 +73,7 @@ author = 'Samuel Zhang'
 import os
 here = os.path.dirname(__file__)
 repo = os.path.join(here, '..', '..')
-_version_py = os.path.join(repo, 'iturtle', '_version.py')
+_version_py = os.path.join(repo, 'iturtle', 'version.py')
 version_ns = {}
 with open(_version_py) as f:
     exec(f.read(), version_ns)
