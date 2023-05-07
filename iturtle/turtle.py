@@ -31,6 +31,13 @@ class ActionType(StrEnum):
 class Turtle(DOMWidget):
     """Interactive turtle widget"""
 
+    # Define constants here.
+    
+    WIDTH = 800
+    HEIGHT = 600
+
+    # Jupyter model variables.
+
     _model_name = Unicode("TurtleModel").tag(sync=True)
     _model_module = Unicode(MODULE_NAME).tag(sync=True)
     _model_module_version = Unicode(MODULE_VERSION).tag(sync=True)
@@ -38,14 +45,14 @@ class Turtle(DOMWidget):
     _view_module = Unicode(MODULE_NAME).tag(sync=True)
     _view_module_version = Unicode(MODULE_VERSION).tag(sync=True)
 
-    # Your widget state goes here. Make sure to update the corresponding
-    width = Int(800).tag(sync=True)
-    height = Int(500).tag(sync=True)
-    x = Int(200).tag(sync=True)
-    y = Int(200).tag(sync=True)
-    actions = List(sync=True)
+    # Widget state goes here.
 
-    OFFSET = 20
+    width = Int(WIDTH).tag(sync=True)
+    height = Int(HEIGHT).tag(sync=True)
+    x = Int(WIDTH // 2).tag(sync=True)
+    y = Int(HEIGHT // 2).tag(sync=True)
+    actions = List().tag(sync=True)
+    bearing = Int(0).tag(sync=True)
 
     def __init__(self):
         """Create a Turtle.
@@ -54,18 +61,17 @@ class Turtle(DOMWidget):
         """
         super(Turtle, self).__init__()
 
-        display(self)
-
-        self.position = (200, 200)
-
         self.pen = True
         self.speedVar = 1
-        self.change = False
         self.color = "black"
-        self.bearing = 90
+
         self.actions = []
 
         self.home()
+
+        # The client should call display proactively.
+
+        # display(self)
 
     def home(self):
         """
@@ -73,12 +79,9 @@ class Turtle(DOMWidget):
         Example:
             t.home()
         """
-        self.position = (200, 200)
-        if 90 < self.bearing <= 270:
-            self.change = -(self.bearing - 90)
-        else:
-            self.change = 90 - self.bearing
-        self.bearing = 90
+        self.x = self.width // 2
+        self.y = self.height // 2
+        self.bearing = 0
         self._add_action(ActionType.MOVE_ABSOLUTE)
 
     def penup(self):
@@ -99,7 +102,7 @@ class Turtle(DOMWidget):
 
     def speed(self, speed):
         """
-        Change the speed of the turtle (range 1-10).
+        Change the speed of the turtle (range 1-10) where 1 is slowest and 10 is fastest.
         Example:
             t.speed(10) # Full speed
         """
@@ -111,14 +114,14 @@ class Turtle(DOMWidget):
         Example:
             t.forward(100)
         """
-        if self.pen:
-            alpha = radians(self.bearing)
-            self.position = (
-                self.position[0] + round(units * sin(alpha)),
-                self.position[1] + round(units * cos(alpha)),
-            )
+        alpha = radians(self.bearing)
+        self.x += round(units * cos(alpha))
+        self.y += round(units * sin(alpha))
 
-        self._add_action(ActionType.LINE_ABSOLUTE)
+        if self.pen:
+            self._add_action(ActionType.LINE_ABSOLUTE)
+        else:
+            self._add_action(ActionType.MOVE_ABSOLUTE)
 
     def right(self, num):
         """
@@ -140,7 +143,7 @@ class Turtle(DOMWidget):
             type=action_type,
             pen=self.pen,
             color=self.color,
-            position=self.position,
+            position=(self.x, self.y),
             speed=self.speedVar,
         )
         self.actions = self.actions + [action]

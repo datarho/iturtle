@@ -15,7 +15,7 @@ interface ModelCallback {
  * @param name property name in the Python model object.
  * @returns model state and set state function.
  */
-export function useModelState<T extends keyof WidgetModelState>(name: T): [WidgetModelState[T], (val: WidgetModelState[T], options?: any) => void] {
+export const useModelState = <T extends keyof WidgetModelState>(name: T): [WidgetModelState[T], (val: WidgetModelState[T], options?: any) => void] => {
     const model = useModel();
     const [state, setState] = useState<WidgetModelState[T]>(model?.get(name));
 
@@ -27,7 +27,7 @@ export function useModelState<T extends keyof WidgetModelState>(name: T): [Widge
         [name]
     );
 
-    function updateModel(val: WidgetModelState[T], options?: any) {
+    const updateModel = (val: WidgetModelState[T], options?: any) => {
         model?.set(name, val, options);
         model?.save_changes();
     }
@@ -42,13 +42,16 @@ export function useModelState<T extends keyof WidgetModelState>(name: T): [Widge
  * @param callback Action to perform when event happens.
  * @param deps Dependencies that should be kept up to date within the callback.
  */
-export function useModelEvent(event: string, callback: ModelCallback, deps?: DependencyList | undefined): void {
+export const useModelEvent = (event: string, callback: ModelCallback, deps?: DependencyList | undefined): void => {
     const model = useModel();
 
     const dependencies = deps === undefined ? [model] : [...deps, model];
     useEffect(() => {
-        const callbackWrapper = (e: Backbone.EventHandler) =>
-            model && callback(model, e);
+        const callbackWrapper = (e: Backbone.EventHandler) => {
+            if (model) {
+                callback(model, e);
+            }
+        }
         model?.on(event, callbackWrapper);
         return () => void model?.unbind(event, callbackWrapper);
     }, dependencies);
@@ -58,6 +61,6 @@ export function useModelEvent(event: string, callback: ModelCallback, deps?: Dep
  * An escape hatch in case you want full access to the model.
  * @returns Python model
  */
-export function useModel(): WidgetModel | undefined {
+export const useModel = (): WidgetModel | undefined => {
     return useContext(WidgetModelContext);
 }

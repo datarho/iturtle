@@ -20,6 +20,7 @@ export interface WidgetModelState {
     height: number;
     x: number;
     y: number;
+    bearing: number;
     actions: Array<TurtleAction>;
 }
 

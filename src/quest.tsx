@@ -1,67 +1,62 @@
-import React from 'react';
+import React, { FunctionComponent } from 'react';
 import { WidgetModel } from '@jupyter-widgets/base';
 import { useModelState, WidgetModelContext } from './store';
 import { ActionType } from './interface';
-// import { ActionType } from "./widget";
 
 interface WidgetProps {
     model: WidgetModel;
 }
 
-const TurtleQuest = (props: WidgetProps) => {
-    const [actions] = useModelState('actions');
+const Turtle: FunctionComponent = () => {
+    const [x] = useModelState('x');
+    const [y] = useModelState('y');
+    const [bearing] = useModelState('bearing');
+
+    return (
+        <svg x={x - 15} y={y - 15} width="32" height="32" xmlns="http://www.w3.org/2000/svg">
+            <g transform={`rotate(${(bearing + 90) % 360}, 15, 15)`} >
+                <path d="M16 0.248374C13.9097 0.248374 12.2153 1.9429 12.2153 4.03313L12.2153 7.81788C12.2153 9.90811 13.9097 11.6026 16 11.6026 18.0904 11.6026 19.7848 9.90811 19.7848 7.81788L19.7848 4.03313C19.7848 1.9429 18.0903 0.248374 16 0.248374Z" fill="#9DD7F5" />
+                <path d="M19.7848 7.81788C19.7848 9.90811 18.0904 11.6026 16 11.6026L16 11.6026C16 7.9125 16 4.03313 16 0.248374L16 0.248374C18.0904 0.248374 19.7848 1.9429 19.7848 4.03313L19.7848 7.81788Z" fill="#78B9EB" />
+                <path d="M10.3323 11.6026 5.67713 11.6026C2.54165 11.6026 0 14.1444 0 17.2798L10.3323 17.2798 10.3323 11.6026Z" fill="#9DD7F5" />
+                <path d="M10.5874 20.1183 7.7139 23.7808C5.77856 26.2476 6.20946 29.8163 8.67617 31.7516L15.0539 23.6225 10.5874 20.1183Z" fill="#9DD7F5" />
+                <path d="M21.4127 20.1183 24.2862 23.7808C26.2215 26.2476 25.7906 29.8163 23.3239 31.7516L16.9462 23.6226 21.4127 20.1183Z" fill="#78B9EB" />
+                <path d="M21.6677 11.6026 26.3229 11.6026C29.4583 11.6026 32 14.1444 32 17.2798L21.6677 17.2798 21.6677 11.6026Z" fill="#78B9EB" />
+                <path d="M16.0037 17.2798 22.6782 8.09417C20.8046 6.73052 18.4984 5.92532 16.0037 5.92532 13.5091 5.92532 11.2029 6.73052 9.32932 8.09417L16.0037 17.2798Z" fill="#FF9811" />
+                <path d="M16.0037 17.2798 22.6782 8.09417C20.8046 6.73052 18.4984 5.92532 16.0037 5.92532 16.0037 9.71026 16.0037 17.2798 16.0037 17.2798Z" fill="#FF5023" />
+                <path d="M16.0037 17.2798 9.33008 8.09351C7.45417 9.45384 5.97575 11.3985 5.20489 13.771 4.43412 16.1436 4.48711 18.5858 5.20508 20.789L16.0037 17.2798Z" fill="#FF5023" />
+                <path d="M16.0037 17.2821 16.0037 17.2798 16 17.281 15.9964 17.2798 15.9964 17.2821 5.20498 20.788C5.91907 22.9923 7.31167 24.9994 9.3298 26.4657 11.3456 27.9302 13.6812 28.6343 15.9957 28.6341L15.9957 28.6342C15.9972 28.6342 15.9985 28.6341 16 28.6341 16.0016 28.6341 16.0029 28.6342 16.0044 28.6342L16.0044 28.6341C18.3189 28.6343 20.6546 27.9302 22.6703 26.4657 24.6884 24.9994 26.081 22.9923 26.7951 20.788L16.0037 17.2821Z" fill="#FF9811" />
+                <path d="M16.0037 17.2798 16.0032 28.6341C18.3203 28.6361 20.6596 27.932 22.6777 26.4657 24.696 24.9993 26.0884 22.9923 26.8028 20.7879L16.0037 17.2798Z" fill="#D80027" />
+                <path d="M16.0037 17.2798 26.8023 20.7891C27.5203 18.5858 27.5733 16.1435 26.8023 13.7711 26.0315 11.3984 24.5532 9.45403 22.6772 8.09341L16.0037 17.2798Z" fill="#802812" />
+                <path d="M19.6188 12.3061 21.8529 19.1825 16.0037 23.4322 10.1544 19.1825 12.3887 12.3061Z" fill="#FFDA44" /><path d="M19.6188 12.3061 21.8529 19.1825 16.0037 23.4322 16 12.3061Z" fill="#FF9811" />
+            </g>
+        </svg>
+    );
+}
+
+const TurtleQuest: FunctionComponent<WidgetProps> = (props) => {
     const [width] = useModelState('width');
     const [height] = useModelState('height');
-    // const [x] = useModelState('x');
-    // const [y] = useModelState('y');
-    // const [color, setColor] = useState('white');
 
-    console.log('actions', actions)
+    // const [color, setColor] = useState('white');
+    const [actions] = useModelState('actions');
 
     let position: [number, number] = [0, 0];
 
     return (
         <div className="Widget">
-            <h1>Hello </h1>
+            <h1>Hello</h1>
 
             <svg viewBox={`0 0 ${width + 1} ${height + 1}`} xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                        <path d="M 0,0 L 20,0 M 0,0 L 0,20" fill="none" stroke="gray" stroke-width="1" />
+                        <path d="M 0,0 L 20,0 M 0,0 L 0,20" fill="none" stroke="gray" stroke-width="0.3" />
                     </pattern>
                 </defs>
 
                 <rect width="100%" height="100%" fill="url(#grid)" />
 
                 {
-                    <svg width="456" height="457" xmlns="http://www.w3.org/2000/svg" overflow="hidden">
-                        <defs>
-                            <clipPath id="clip0"><rect x="412" y="192" width="456" height="457" />
-                            </clipPath>
-                        </defs>
-                        <g clip-path="url(#clip0)" transform="translate(-412 -192)">
-                            <path d="M228.001 3.53934C198.214 3.53934 174.068 27.6864 174.068 57.4721L174.068 111.405C174.068 141.191 198.214 165.338 228.001 165.338 257.788 165.338 281.933 141.191 281.933 111.405L281.933 57.4721C281.933 27.6864 257.786 3.53934 228.001 3.53934Z" fill="#9DD7F5" transform="matrix(1 0 0 1.00219 412 192)" />
-                            <path d="M281.933 111.405C281.933 141.191 257.788 165.338 228.001 165.338L228.001 165.338C228.001 112.753 228.001 57.4721 228.001 3.53934L228.001 3.53934C257.788 3.53934 281.933 27.6864 281.933 57.4721L281.933 111.405Z" fill="#78B9EB" transform="matrix(1 0 0 1.00219 412 192)" />
-                            <path d="M147.235 165.338 80.8991 165.338C36.2185 165.338 0 201.557 0 246.237L147.235 246.237 147.235 165.338Z" fill="#9DD7F5" transform="matrix(1 0 0 1.00219 412 192)" />
-                            <path d="M150.87 286.686 109.923 338.877C82.3445 374.029 88.4848 424.882 123.635 452.461L214.517 336.621 150.87 286.686Z" fill="#9DD7F5" transform="matrix(1 0 0 1.00219 412 192)" />
-                            <path d="M305.131 286.686 346.078 338.877C373.657 374.029 367.517 424.882 332.366 452.461L241.484 336.623 305.131 286.686Z" fill="#78B9EB" transform="matrix(1 0 0 1.00219 412 192)" />
-                            <path d="M308.765 165.338 375.101 165.338C419.781 165.338 456 201.557 456 246.237L308.765 246.237 308.765 165.338Z" fill="#78B9EB" transform="matrix(1 0 0 1.00219 412 192)" />
-                            <path d="M228.053 246.237 323.165 115.342C296.466 95.91 263.602 84.4358 228.053 84.4358 192.505 84.4358 159.641 95.91 132.943 115.342L228.053 246.237Z" fill="#FF9811" transform="matrix(1 0 0 1.00219 412 192)" />
-                            <path d="M228.053 246.237 323.165 115.342C296.466 95.91 263.602 84.4358 228.053 84.4358 228.053 138.371 228.053 246.237 228.053 246.237Z" fill="#FF5023" transform="matrix(1 0 0 1.00219 412 192)" />
-                            <path d="M228.053 246.237 132.954 115.332C106.222 134.717 85.1544 162.429 74.1697 196.237 63.1863 230.046 63.9413 264.848 74.1724 296.243L228.053 246.237Z" fill="#FF5023" transform="matrix(1 0 0 1.00219 412 192)" />
-                            <path d="M228.053 246.27 228.053 246.237 228.001 246.254 227.948 246.237 227.948 246.27 74.171 296.228C84.3468 327.64 104.191 356.242 132.95 377.135 161.674 398.005 194.957 408.039 227.939 408.036L227.939 408.038C227.96 408.038 227.979 408.036 228.001 408.036 228.022 408.036 228.041 408.038 228.063 408.038L228.063 408.036C261.044 408.039 294.328 398.005 323.052 377.135 351.81 356.242 371.655 327.64 381.83 296.228L228.053 246.27Z" fill="#FF9811" transform="matrix(1 0 0 1.00219 412 192)" />
-                            <path d="M228.053 246.237 228.045 408.036C261.064 408.065 294.399 398.03 323.157 377.135 351.918 356.241 371.76 327.64 381.94 296.227L228.053 246.237Z" fill="#D80027" transform="matrix(1 0 0 1.00219 412 192)" />
-                            <path d="M228.053 246.237 381.933 296.244C392.164 264.848 392.919 230.045 381.933 196.238 370.949 162.428 349.883 134.72 323.15 115.331L228.053 246.237Z" fill="#802812" transform="matrix(1 0 0 1.00219 412 192)" />
-                            <path d="M279.568 175.362 311.404 273.35 228.053 333.908 144.7 273.35 176.539 175.362Z" fill="#FFDA44" transform="matrix(1 0 0 1.00219 412 192)" />
-                            <path d="M279.568 175.362 311.404 273.35 228.053 333.908 228.001 175.362Z" fill="#FF9811" transform="matrix(1 0 0 1.00219 412 192)" />
-                        </g>
-                    </svg>
-                }
-
-                {
                     actions?.map(action => {
-                        console.log('action', action)
-
                         switch (action.type) {
                             case ActionType.MOVE_ABSOLUTE:
                                 position = action.position;
@@ -73,11 +68,11 @@ const TurtleQuest = (props: WidgetProps) => {
                                     const visual =
                                         <line
                                             x1={position[0]}
-                                            y1={height - position[1]}
+                                            y1={position[1]}
                                             x2={action.position[0]}
-                                            y2={height - action.position[1]}
+                                            y2={action.position[1]}
                                             strokeLinecap="round"
-                                            strokeWidth={3}
+                                            strokeWidth={1}
                                             stroke={action.color}
                                             color={action.color}
                                         />;
@@ -94,13 +89,15 @@ const TurtleQuest = (props: WidgetProps) => {
                         }
                     })
                 }
+
+                <Turtle />
             </svg>
 
         </div>
     );
 }
 
-const withModelContext = (Component: (props: WidgetProps) => JSX.Element) => {
+const withModelContext = (Component: FunctionComponent<WidgetProps>) => {
     return (props: WidgetProps) => (
         <WidgetModelContext.Provider value={props.model}>
             <Component {...props} />
