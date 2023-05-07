@@ -3,6 +3,8 @@ import { WidgetModel } from '@jupyter-widgets/base';
 import { useModelState, WidgetModelContext } from './store';
 import { ActionType } from './interface';
 
+import '../css/widget.css';
+
 interface WidgetProps {
     model: WidgetModel;
 }
@@ -36,7 +38,6 @@ const Turtle: FunctionComponent = () => {
 const TurtleQuest: FunctionComponent<WidgetProps> = (props) => {
     const [width] = useModelState('width');
     const [height] = useModelState('height');
-
     // const [color, setColor] = useState('white');
     const [actions] = useModelState('actions');
 
@@ -56,7 +57,7 @@ const TurtleQuest: FunctionComponent<WidgetProps> = (props) => {
                 <rect width="100%" height="100%" fill="url(#grid)" />
 
                 {
-                    actions?.map(action => {
+                    actions?.map((action, index) => {
                         switch (action.type) {
                             case ActionType.MOVE_ABSOLUTE:
                                 position = action.position;
@@ -65,6 +66,11 @@ const TurtleQuest: FunctionComponent<WidgetProps> = (props) => {
 
                             case ActionType.LINE_ABSOLUTE:
                                 if (action.pen) {
+                                    const steps = Math.round(action.distance / (3 * 1.1 ** action.velocity * action.velocity));
+                                    const duration = Math.round(steps * 10);
+
+                                    console.log(steps, duration)
+
                                     const visual =
                                         <line
                                             x1={position[0]}
@@ -75,6 +81,11 @@ const TurtleQuest: FunctionComponent<WidgetProps> = (props) => {
                                             strokeWidth={1}
                                             stroke={action.color}
                                             color={action.color}
+                                            style={{
+                                                strokeDasharray: 1000,
+                                                strokeDashoffset: 1000,
+                                                animation: `dash ${duration}ms linear forwards`,
+                                            }}
                                         />;
 
                                     position = action.position;

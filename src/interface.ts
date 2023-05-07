@@ -10,5 +10,6 @@ export interface TurtleAction {
     color: string;
     position: [number, number];
     change: boolean;
-    speed: number;
+    velocity: number;
+    distance: number;
 }

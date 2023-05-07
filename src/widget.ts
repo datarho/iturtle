@@ -7,7 +7,6 @@ import { TurtleAction } from './interface';
 
 import '../css/widget.css';
 
-
 export interface WidgetModelState {
     _model_module: string;
     _model_name: string;
@@ -20,6 +19,8 @@ export interface WidgetModelState {
     height: number;
     x: number;
     y: number;
+    distance: number;
+    velocity: number;
     bearing: number;
     actions: Array<TurtleAction>;
 }
