@@ -35,11 +35,14 @@ const Turtle: FunctionComponent = () => {
     );
 }
 
-const TurtleQuest: FunctionComponent<WidgetProps> = (props) => {
+const TurtleQuest: FunctionComponent = () => {
     const [width] = useModelState('width');
     const [height] = useModelState('height');
-    // const [color, setColor] = useState('white');
+    const [background] = useModelState('background');
     const [actions] = useModelState('actions');
+
+    console.log('background', background)
+    console.log('actions', actions)
 
     let position: [number, number] = [0, 0];
 
@@ -50,7 +53,8 @@ const TurtleQuest: FunctionComponent<WidgetProps> = (props) => {
             <svg viewBox={`0 0 ${width + 1} ${height + 1}`} xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                        <path d="M 0,0 L 20,0 M 0,0 L 0,20" fill="none" stroke="gray" stroke-width="0.3" />
+                        <rect width="100%" height="100%" fill={background} />
+                        <path d="M 0,0 L 20,0 M 0,0 L 0,20" stroke="gray" stroke-width="0.3" />
                     </pattern>
                 </defs>
 
@@ -69,8 +73,6 @@ const TurtleQuest: FunctionComponent<WidgetProps> = (props) => {
                                     const steps = Math.round(action.distance / (3 * 1.1 ** action.velocity * action.velocity));
                                     const duration = Math.round(steps * 10);
 
-                                    console.log(steps, duration)
-
                                     const visual =
                                         <line
                                             x1={position[0]}
@@ -80,7 +82,6 @@ const TurtleQuest: FunctionComponent<WidgetProps> = (props) => {
                                             strokeLinecap="round"
                                             strokeWidth={1}
                                             stroke={action.color}
-                                            color={action.color}
                                             style={{
                                                 strokeDasharray: 1000,
                                                 strokeDashoffset: 1000,
@@ -108,10 +109,10 @@ const TurtleQuest: FunctionComponent<WidgetProps> = (props) => {
     );
 }
 
-const withModelContext = (Component: FunctionComponent<WidgetProps>) => {
+const withModelContext = (Component: FunctionComponent) => {
     return (props: WidgetProps) => (
         <WidgetModelContext.Provider value={props.model}>
-            <Component {...props} />
+            <Component />
         </WidgetModelContext.Provider>
     );
 }

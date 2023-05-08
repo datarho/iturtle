@@ -21,6 +21,7 @@ export interface WidgetModelState {
     y: number;
     distance: number;
     velocity: number;
+    background: string;
     bearing: number;
     actions: Array<TurtleAction>;
 }

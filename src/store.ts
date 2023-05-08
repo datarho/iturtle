@@ -46,13 +46,19 @@ export const useModelEvent = (event: string, callback: ModelCallback, deps?: Dep
     const model = useModel();
 
     const dependencies = deps === undefined ? [model] : [...deps, model];
+
     useEffect(() => {
         const callbackWrapper = (e: Backbone.EventHandler) => {
+            console.log('callback triggered for', event)
+
             if (model) {
                 callback(model, e);
             }
         }
         model?.on(event, callbackWrapper);
+
+        console.log('install callback for', event)
+
         return () => void model?.unbind(event, callbackWrapper);
     }, dependencies);
 }

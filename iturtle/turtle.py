@@ -8,12 +8,13 @@
 Interactive turtle widget module
 """
 
-from time import sleep
 from enum import StrEnum
 from math import cos, radians, sin
+from time import sleep
+from typing import overload
 
-from IPython.display import display
 from ipywidgets import DOMWidget
+from IPython.display import display
 from traitlets import Int, List, Unicode
 
 from .frontend import MODULE_NAME, MODULE_VERSION
@@ -30,10 +31,12 @@ class ActionType(StrEnum):
 
 
 class Turtle(DOMWidget):
-    """Interactive turtle widget"""
+    """
+    Interactive turtle widget
+    """
 
     # Define constants here.
-    
+
     WIDTH = 800
     HEIGHT = 600
 
@@ -55,7 +58,8 @@ class Turtle(DOMWidget):
     actions = List().tag(sync=True)
     bearing = Int(0).tag(sync=True)
     distance = Int(0).tag(sync=True)
-    velocity = Int(6).tag(sync=True)    # avoid duplicate to speed method
+    velocity = Int(6).tag(sync=True)  # avoid duplicate to speed method
+    background = Unicode("white").tag(sync=True)
 
     def __init__(self):
         """Create a Turtle.
@@ -66,7 +70,7 @@ class Turtle(DOMWidget):
 
         self.pen = True
         self.velocity = 6
-        self.color = "black"
+        self.pen_color = "black"
 
         self.actions = []
 
@@ -110,7 +114,7 @@ class Turtle(DOMWidget):
         Example:
             t.speed(10) # Full speed
         """
-        self.velocity = min(max(1, velocity), 10)
+        self.velocity = self._clamp(velocity, 1, 10)
 
     def forward(self, distance: int):
         """
@@ -128,7 +132,7 @@ class Turtle(DOMWidget):
             self._add_action(ActionType.LINE_ABSOLUTE)
         else:
             self._add_action(ActionType.MOVE_ABSOLUTE)
-        
+
     def right(self, angle: int):
         """
         Turn the turtle num degrees to the right.
@@ -144,11 +148,60 @@ class Turtle(DOMWidget):
         """
         self.bearing = (self.bearing - angle) % 360
 
+    @overload
+    def pencolor(self, color: str) -> None:
+        ...
+
+    @overload
+    def pencolor(self, r: int, g: int, b: int) -> None:
+        ...
+
+    def pencolor(self, *args) -> None:
+        """
+        Change the color of the pen with RGB color. Default is black.
+        Example:
+            t.pencolor("red")
+        """
+        if len(args) == 3:
+            r = self._clamp(args[0], 0, 255)
+            g = self._clamp(args[1], 0, 255)
+            b = self._clamp(args[2], 0, 255)
+
+            self.pen_color = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
+        elif len(args) == 1:
+            self.pen_color = args[0]
+
+    @overload
+    def bgcolor(self, color: str) -> None:
+        ...
+
+    @overload
+    def bgcolor(self, r: int, g: int, b: int) -> None:
+        ...
+
+    def bgcolor(self, *args) -> None:
+        """
+        Set or return background color of the turtle screen.
+        Example:
+            t.bgcolor("orange")
+        """
+        if len(args) == 3:
+            r = self._clamp(args[0], 0, 255)
+            g = self._clamp(args[1], 0, 255)
+            b = self._clamp(args[2], 0, 255)
+
+            self.background = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
+        elif len(args) == 1:
+            self.background = args[0]
+
+    def _clamp(self, num: int, low: int, high: int) -> int:
+        return max(low, min(num, high))
+
     def _add_action(self, action_type: ActionType):
         action = dict(
             type=action_type,
             pen=self.pen,
-            color=self.color,
+            color=self.pen_color,
             distance=self.distance,
             position=(self.x, self.y),
             velocity=self.velocity,
