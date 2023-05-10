@@ -38,7 +38,7 @@ class Turtle(DOMWidget):
     # Define constants here.
 
     WIDTH = 800
-    HEIGHT = 600
+    HEIGHT = 500
 
     # Jupyter model variables.
 
@@ -68,6 +68,8 @@ class Turtle(DOMWidget):
         """
         super(Turtle, self).__init__()
 
+        display(self)
+
         self.pen = True
         self.velocity = 6
         self.pen_color = "black"
@@ -75,10 +77,6 @@ class Turtle(DOMWidget):
         self.actions = []
 
         self.home()
-
-        # The client should call display proactively.
-
-        # display(self)
 
     def home(self):
         """
@@ -91,6 +89,15 @@ class Turtle(DOMWidget):
         self.distance = 0
         self.bearing = 0
         self._add_action(ActionType.MOVE_ABSOLUTE)
+
+    def clear(self):
+        """
+        This function is used to delete the turtle’s drawings from the screen. Do not move state
+        and position of the turtle as well as drawings of other turtles are not affected.
+        Example:
+            t.clear()
+        """
+        self.actions = []
 
     def penup(self):
         """
