@@ -1,0 +1,5 @@
+{
+    "load_extensions": {
+        "iturtle/extension": true
+    }
+}
