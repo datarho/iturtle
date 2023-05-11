@@ -77,12 +77,9 @@ const TurtleQuest: FunctionComponent = () => {
                                             strokeLinecap="round"
                                             strokeWidth={1}
                                             stroke={action.color}
-                                            style={{
-                                                strokeDasharray: 1000,
-                                                strokeDashoffset: 1000,
-                                                animation: `dash ${duration}ms linear forwards`,
-                                            }}
-                                        />;
+                                        >
+                                            <animate attributeName="stroke-dashoffset" from="1000" to="0" dur={`${duration}ms`} calcMode="linear forwards"></animate>
+                                        </line>;
 
                                     position = action.position;
 

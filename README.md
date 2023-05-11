@@ -23,6 +23,27 @@ Imagine a robotic turtle starting at the middle of the coordinate plane. After a
 
 By combining together these and similar commands, intricate shapes and pictures can easily be drawn.
 
+For example, intricate shapes can be drawn by repeating simple moves:
+
+```
+from iturtle import Turtle
+
+turtle = Turtle()
+turtle.pencolor("gold")
+
+for i in range(36):
+    turtle.forward(300)
+    turtle.left(170)
+```
+
+![](star.svg)
+
+Please check the following samples:
+
+* [Introduction](examples/introduction.ipynb)
+* [Star](examples/star.ipynb)
+* [Spiral](examples/spiral.ipynb)
+
 Currently Interactive Turtle supports these methods:
 
 ### Turtle motion
