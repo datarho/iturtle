@@ -45,64 +45,57 @@ const TurtleQuest: FunctionComponent = () => {
 
     return (
         <div className="Widget">
-            <h1>Hello</h1>
+            <svg viewBox={`0 0 ${width + 1} ${height + 1}`} xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <path d="M 0,0 L 20,0 M 0,0 L 0,20" stroke="gray" stroke-width="0.3" />
+                    </pattern>
+                </defs>
 
-            <div style={{ backgroundColor: background }}>
-                <svg viewBox={`0 0 ${width + 1} ${height + 1}`} xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                            <path d="M 0,0 L 20,0 M 0,0 L 0,20" stroke="gray" stroke-width="0.3" />
-                        </pattern>
-                    </defs>
+                <rect width="100%" height="100%" fill={`${background}`} />
+                <rect width="100%" height="100%" fill="url(#grid)" />
 
-                    <rect width="100%" height="100%" fill="url(#grid)" />
+                {
+                    actions?.map((action, index) => {
+                        switch (action.type) {
+                            case ActionType.MOVE_ABSOLUTE:
+                                position = action.position;
 
-                    {
-                        actions?.map((action, index) => {
-                            switch (action.type) {
-                                case ActionType.MOVE_ABSOLUTE:
+                                return undefined;
+
+                            case ActionType.LINE_ABSOLUTE:
+                                if (action.pen) {
+                                    const steps = Math.round(action.distance / (3 * 1.1 ** action.velocity * action.velocity));
+                                    const duration = Math.round(steps * 10);
+
+                                    const visual =
+                                        <line
+                                            x1={position[0]}
+                                            y1={position[1]}
+                                            x2={action.position[0]}
+                                            y2={action.position[1]}
+                                            strokeLinecap="round"
+                                            strokeWidth={1}
+                                            stroke={action.color}
+                                        >
+                                            <animate attributeName="stroke-dashoffset" from="1000" to="0" dur={`${duration}ms`} calcMode="linear forwards"></animate>
+                                        </line>;
+
                                     position = action.position;
 
-                                    return undefined;
+                                    return visual;
+                                }
 
-                                case ActionType.LINE_ABSOLUTE:
-                                    if (action.pen) {
-                                        const steps = Math.round(action.distance / (3 * 1.1 ** action.velocity * action.velocity));
-                                        const duration = Math.round(steps * 10);
+                                return undefined;
 
-                                        const visual =
-                                            <line
-                                                x1={position[0]}
-                                                y1={position[1]}
-                                                x2={action.position[0]}
-                                                y2={action.position[1]}
-                                                strokeLinecap="round"
-                                                strokeWidth={1}
-                                                stroke={action.color}
-                                                style={{
-                                                    strokeDasharray: 1000,
-                                                    strokeDashoffset: 1000,
-                                                    animation: `dash ${duration}ms linear forwards`,
-                                                }}
-                                            />;
+                            default:
+                                return undefined;
+                        }
+                    })
+                }
 
-                                        position = action.position;
-
-                                        return visual;
-                                    }
-
-                                    return undefined;
-
-                                default:
-                                    return undefined;
-                            }
-                        })
-                    }
-
-                    <Turtle />
-                </svg>
-            </div>
-
+                <Turtle />
+            </svg>
         </div>
     );
 }
