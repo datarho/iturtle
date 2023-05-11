@@ -13,8 +13,8 @@ from math import cos, radians, sin
 from time import sleep
 from typing import overload
 
-from ipywidgets import DOMWidget
 from IPython.display import display
+from ipywidgets import DOMWidget
 from traitlets import Int, List, Unicode
 
 from .frontend import MODULE_NAME, MODULE_VERSION
@@ -177,6 +177,12 @@ class Turtle(DOMWidget):
             self.pen_color = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
         elif len(args) == 1:
             self.pen_color = args[0]
+
+    def heading(self) -> int:
+        """
+        Return the turtle's current heading.
+        """
+        return self.bearing
 
     @overload
     def bgcolor(self, color: str) -> None:
