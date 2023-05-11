@@ -8,7 +8,7 @@
 Interactive turtle widget module
 """
 
-from enum import StrEnum
+from enum import Enum
 from math import cos, radians, sin
 from time import sleep
 from typing import overload
@@ -20,7 +20,7 @@ from traitlets import Int, List, Unicode
 from .frontend import MODULE_NAME, MODULE_VERSION
 
 
-class ActionType(StrEnum):
+class ActionType(str, Enum):
     """
     Enum for action types that follows SVG path commands.
     """
