@@ -13,8 +13,9 @@ from math import cos, radians, sin
 from time import sleep
 from typing import overload
 
-from IPython.display import display
+from IPython.display import clear_output, display
 from ipywidgets import DOMWidget
+from svg import SVG, Circle, Line, Rect, ViewBoxSpec
 from traitlets import Int, List, Unicode
 
 from .frontend import MODULE_NAME, MODULE_VERSION
@@ -207,6 +208,10 @@ class Turtle(DOMWidget):
         elif len(args) == 1:
             self.background = args[0]
 
+    def save(self) -> None:
+        clear_output()
+        display(self)
+
     def _clamp(self, num: int, low: int, high: int) -> int:
         return max(low, min(num, high))
 
@@ -231,3 +236,26 @@ class Turtle(DOMWidget):
         # the 'normal' (6) speed! Each step incurs a screen update delay of 10ms by default.
         steps = int(self.distance / (3 * 1.1**self.velocity * self.velocity))
         sleep(steps * 0.01)
+
+    def _repr_svg_(self):
+        position = [0, 0]
+        lines = []
+
+        for action in self.actions:
+            if action["type"] == ActionType.MOVE_ABSOLUTE:
+                position = action["position"]
+            elif action["type"] == ActionType.LINE_ABSOLUTE:
+                line = Line(x1=position[0], y1=position[1], x2=action["position"][0], y2=action["position"][1], stroke=action["color"])
+                lines.append(line)
+                position = action["position"]
+
+        pic = SVG(
+            width=self.width,
+            height=self.height,
+            viewBox=ViewBoxSpec(0, 0, self.width + 1, self.height + 1),
+            elements=[
+                Rect(width=self.width, height=self.height, fill=self.background), 
+            ] + lines,
+        )
+
+        return str(pic)
