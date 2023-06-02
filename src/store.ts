@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState, DependencyList } from 'react';
 import { WidgetModel } from '@jupyter-widgets/base';
+import { createContext, DependencyList, useContext, useState } from 'react';
 import { WidgetModelState } from './widget';
 
 export const WidgetModelContext = createContext<WidgetModel | undefined>(
@@ -45,18 +45,11 @@ export const useModelState = <T extends keyof WidgetModelState>(name: T): [Widge
 export const useModelEvent = (event: string, callback: ModelCallback, deps?: DependencyList | undefined): void => {
     const model = useModel();
 
-    const dependencies = deps === undefined ? [model] : [...deps, model];
-
-    useEffect(() => {
-        const callbackWrapper = (e: Backbone.EventHandler) => {
-            if (model) {
-                callback(model, e);
-            }
+    model?.on(event, (e: Backbone.EventHandler) => {
+        if (model) {
+            callback(model, e);
         }
-        model?.on(event, callbackWrapper);
-
-        return () => void model?.unbind(event, callbackWrapper);
-    }, dependencies);
+    });
 }
 
 /**

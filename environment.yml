@@ -184,6 +184,7 @@ dependencies:
       - sphinxcontrib-qthelp==1.0.3
       - sphinxcontrib-serializinghtml==1.1.5
       - sqlparse==0.4.4
+      - svg.py==1.4.2
       - tenacity==8.2.0
       - tomlkit==0.11.6
       - uri-template==1.2.0
