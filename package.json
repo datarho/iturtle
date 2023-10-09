@@ -17,7 +17,7 @@
     "bugs": {
         "url": "https://github.com/datarho.tech/iturtle/issues"
     },
-    "license": "BSD-3-Clause",
+    "license": "MIT",
     "author": {
         "name": "Samuel Zhang",
         "email": "qizh@datarho.tech"
