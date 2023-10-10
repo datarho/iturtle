@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# Copyright (c) Samuel Zhang.
-# Distributed under the terms of the Modified BSD License.
-
 """
 Interactive turtle widget module
 """
@@ -15,7 +9,7 @@ from typing import overload
 
 from IPython.display import clear_output, display
 from ipywidgets import DOMWidget
-from svg import SVG, Circle, Line, Rect, ViewBoxSpec
+from svg import SVG, Line, Rect, ViewBoxSpec
 from traitlets import Int, List, Unicode
 
 from .frontend import MODULE_NAME, MODULE_VERSION
@@ -141,6 +135,14 @@ class Turtle(DOMWidget):
         else:
             self._add_action(ActionType.MOVE_ABSOLUTE)
 
+    def backward(self, distance: int):
+        """
+        Move the Turtle backward by certain units.
+        Example:
+            t.backward(100)
+        """
+        self.forward(-distance)
+
     def right(self, angle: int):
         """
         Turn the turtle num degrees to the right.
@@ -235,7 +237,7 @@ class Turtle(DOMWidget):
         # (1 or 'slowest'), 30 steps. At a fast speed (10 or 'fast'), 1 step. Oddly, the default speed isn't
         # the 'normal' (6) speed! Each step incurs a screen update delay of 10ms by default.
         steps = int(self.distance / (3 * 1.1**self.velocity * self.velocity))
-        sleep(steps * 0.01)
+        sleep(abs(steps) * 0.01)
 
     def _repr_svg_(self):
         position = [0, 0]
@@ -245,7 +247,13 @@ class Turtle(DOMWidget):
             if action["type"] == ActionType.MOVE_ABSOLUTE:
                 position = action["position"]
             elif action["type"] == ActionType.LINE_ABSOLUTE:
-                line = Line(x1=position[0], y1=position[1], x2=action["position"][0], y2=action["position"][1], stroke=action["color"])
+                line = Line(
+                    x1=position[0],
+                    y1=position[1],
+                    x2=action["position"][0],
+                    y2=action["position"][1],
+                    stroke=action["color"],
+                )
                 lines.append(line)
                 position = action["position"]
 
@@ -254,8 +262,9 @@ class Turtle(DOMWidget):
             height=self.height,
             viewBox=ViewBoxSpec(0, 0, self.width + 1, self.height + 1),
             elements=[
-                Rect(width=self.width, height=self.height, fill=self.background), 
-            ] + lines,
+                Rect(width=self.width, height=self.height, fill=self.background),
+            ]
+            + lines,
         )
 
         return str(pic)

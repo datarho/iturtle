@@ -1,6 +1,3 @@
-// Copyright (c) Jupyter Development Team.
-// Distributed under the terms of the Modified BSD License.
-
 import * as widgets from '@jupyter-widgets/base';
 import * as services from '@jupyterlab/services';
 
@@ -100,7 +97,7 @@ export class DummyManager extends widgets.ManagerBase<HTMLElement> {
 }
 
 export interface Constructor<T> {
-  new (attributes?: any, options?: any): T;
+  new(attributes?: any, options?: any): T;
 }
 
 export function createTestModel<T extends widgets.WidgetModel>(

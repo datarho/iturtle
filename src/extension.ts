@@ -1,6 +1,3 @@
-// Copyright (c) Jupyter Development Team.
-// Distributed under the terms of the Modified BSD License.
-
 // Entry point for the notebook bundle containing custom model definitions.
 //
 // Setup notebook base URL
