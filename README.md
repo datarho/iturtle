@@ -64,6 +64,12 @@ Move the turtle forward by the specified distance, in the direction the turtle i
 turtle.forward(20)
 ```
 
+Move the turtle backward by the specified distance, in the direction the turtle is headed.
+
+```
+turtle.backward(20)
+```
+
 `left()`
 
 Turn turtle left by angle units. Units are by default degrees.
