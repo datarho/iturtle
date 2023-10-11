@@ -22,19 +22,19 @@ def test_turtle_forward():
     """
     turtle = Turtle()
 
-    assert turtle.x == Turtle.WIDTH // 2
-    assert turtle.y == Turtle.HEIGHT // 2
+    assert turtle.x == Turtle.WIDTH / 2
+    assert turtle.y == Turtle.HEIGHT / 2
 
     turtle.forward(80)
 
-    assert turtle.x == Turtle.WIDTH // 2 + 80
-    assert turtle.y == Turtle.HEIGHT // 2
+    assert turtle.x == Turtle.WIDTH / 2 + 80
+    assert turtle.y == Turtle.HEIGHT / 2
 
     turtle.right(90)
     turtle.forward(80)
 
-    assert turtle.x == Turtle.WIDTH // 2 + 80
-    assert turtle.y == Turtle.HEIGHT // 2 + 80
+    assert turtle.x == Turtle.WIDTH / 2 + 80
+    assert turtle.y == Turtle.HEIGHT / 2 + 80
 
 
 def test_turtle_backward():
@@ -43,19 +43,19 @@ def test_turtle_backward():
     """
     turtle = Turtle()
 
-    assert turtle.x == Turtle.WIDTH // 2
-    assert turtle.y == Turtle.HEIGHT // 2
+    assert turtle.x == Turtle.WIDTH / 2
+    assert turtle.y == Turtle.HEIGHT / 2
 
     turtle.backward(80)
 
-    assert turtle.x == Turtle.WIDTH // 2 - 80
-    assert turtle.y == Turtle.HEIGHT // 2
+    assert turtle.x == Turtle.WIDTH / 2 - 80
+    assert turtle.y == Turtle.HEIGHT / 2
 
     turtle.right(90)
     turtle.backward(80)
 
-    assert turtle.x == Turtle.WIDTH // 2 - 80
-    assert turtle.y == Turtle.HEIGHT // 2 - 80
+    assert turtle.x == Turtle.WIDTH / 2 - 80
+    assert turtle.y == Turtle.HEIGHT / 2 - 80
 
 
 def test_turtle_right():
@@ -72,7 +72,7 @@ def test_turtle_right():
 
     turtle.right(360)
 
-    assert turtle.bearing == 90
+    assert turtle.bearing == 450
 
 
 def test_turtle_left():
@@ -85,8 +85,30 @@ def test_turtle_left():
 
     turtle.left(90)
 
-    assert turtle.bearing == 270
+    assert turtle.bearing == -90
 
     turtle.right(360)
 
     assert turtle.bearing == 270
+
+
+def test_turtle_goto():
+    """
+    Check turtle goto method.
+    """
+    turtle = Turtle()
+    turtle.forward(10)
+    turtle.goto(0, 0)
+    assert turtle.x == Turtle.WIDTH / 2
+    assert turtle.y == Turtle.HEIGHT / 2
+
+
+def test_turtle_teleport():
+    """
+    Check turtle teleport method.
+    """
+    turtle = Turtle()
+    turtle.forward(10)
+    turtle.teleport(0, 0)
+    assert turtle.x == Turtle.WIDTH / 2
+    assert turtle.y == Turtle.HEIGHT / 2

@@ -24,6 +24,7 @@ export interface WidgetModelState {
     background: string;
     bearing: number;
     actions: Array<TurtleAction>;
+    show: boolean;
 }
 
 export class TurtleModel extends DOMWidgetModel {

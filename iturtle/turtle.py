@@ -3,14 +3,14 @@ Interactive turtle widget module
 """
 
 from enum import Enum
-from math import cos, radians, sin
+from math import cos, radians, sin, sqrt
 from time import sleep
 from typing import overload
 
 from IPython.display import clear_output, display
 from ipywidgets import DOMWidget
 from svg import SVG, Line, Rect, ViewBoxSpec
-from traitlets import Int, List, Unicode
+from traitlets import List, Unicode, Float, Bool
 
 from .frontend import MODULE_NAME, MODULE_VERSION
 
@@ -23,6 +23,7 @@ class ActionType(str, Enum):
     MOVE_ABSOLUTE = "M"
     MOVE_RELATIVE = "m"
     LINE_ABSOLUTE = "L"
+    DRAW = "D"
 
 
 class Turtle(DOMWidget):
@@ -34,6 +35,7 @@ class Turtle(DOMWidget):
 
     WIDTH = 800
     HEIGHT = 500
+    PENSIZE = 1
 
     # Jupyter model variables.
 
@@ -46,15 +48,16 @@ class Turtle(DOMWidget):
 
     # Widget state goes here.
 
-    width = Int(WIDTH).tag(sync=True)
-    height = Int(HEIGHT).tag(sync=True)
-    x = Int(WIDTH // 2).tag(sync=True)
-    y = Int(HEIGHT // 2).tag(sync=True)
+    width = Float(WIDTH).tag(sync=True)
+    height = Float(HEIGHT).tag(sync=True)
+    x = Float(WIDTH / 2).tag(sync=True)
+    y = Float(HEIGHT / 2).tag(sync=True)
     actions = List().tag(sync=True)
-    bearing = Int(0).tag(sync=True)
-    distance = Int(0).tag(sync=True)
-    velocity = Int(6).tag(sync=True)  # avoid duplicate to speed method
+    bearing = Float(0).tag(sync=True)
+    distance = Float(0).tag(sync=True)
+    velocity = Float(6).tag(sync=True)  # avoid duplicate to speed method
     background = Unicode("white").tag(sync=True)
+    show = Bool(True).tag(sync=True)
 
     def __init__(self):
         """Create a Turtle.
@@ -79,8 +82,8 @@ class Turtle(DOMWidget):
         Example:
             t.home()
         """
-        self.x = self.width // 2
-        self.y = self.height // 2
+        self.x = self.width / 2
+        self.y = self.height / 2
         self.distance = 0
         self.bearing = 0
         self._add_action(ActionType.MOVE_ABSOLUTE)
@@ -118,7 +121,7 @@ class Turtle(DOMWidget):
         """
         self.velocity = self._clamp(velocity, 1, 10)
 
-    def forward(self, distance: int):
+    def forward(self, distance: float):
         """
         Move the Turtle forward by certain units.
         Example:
@@ -127,15 +130,15 @@ class Turtle(DOMWidget):
         self.distance = distance
 
         alpha = radians(self.bearing)
-        self.x += round(distance * cos(alpha))
-        self.y += round(distance * sin(alpha))
+        self.x += distance * cos(alpha)
+        self.y += distance * sin(alpha)
 
         if self.pen:
             self._add_action(ActionType.LINE_ABSOLUTE)
         else:
             self._add_action(ActionType.MOVE_ABSOLUTE)
 
-    def backward(self, distance: int):
+    def backward(self, distance: float):
         """
         Move the Turtle backward by certain units.
         Example:
@@ -143,20 +146,52 @@ class Turtle(DOMWidget):
         """
         self.forward(-distance)
 
-    def right(self, angle: int):
+    def right(self, angle: float):
         """
         Turn the turtle num degrees to the right.
         Example:
             t.right(90)
         """
-        self.bearing = (self.bearing + angle) % 360
+        self.bearing = self.bearing + angle
+
+    def goto(self, x: float, y: float):
+        """Move the Turtle to the (x, y).
+        Example::
+            t.goto(0, 0)
+        """
+        x = x + self.width / 2
+        y = self.height / 2 - y
+        self.distance = sqrt((self.x - x) ** 2 + (self.y - y) ** 2)
+        self.x = x
+        self.y = y
+        if self.pen:
+            self._add_action(ActionType.LINE_ABSOLUTE)
+        else:
+            self._add_action(ActionType.MOVE_ABSOLUTE)
+
+    def teleport(self, x: float, y: float):
+        """Teleport the Turtle to (x,y).
+        Example::
+            t.teleport(0, 0)
+        """
+        x = x + self.width / 2
+        y = self.height / 2 - y
+        self.x = x
+        self.y = y
+        self.distance = 0
+        self._add_action(ActionType.MOVE_ABSOLUTE)
 
     def left(self, angle: int):
         """Turn the Turtle num degrees to the left.
         Example::
             t.left(90)
         """
-        self.bearing = (self.bearing - angle) % 360
+        self.bearing = self.bearing - angle
+
+    def dot(self):
+        self.distance = 0
+        self._add_action(ActionType.DRAW)
+        pass
 
     @overload
     def pencolor(self, color: str) -> None:
@@ -181,11 +216,17 @@ class Turtle(DOMWidget):
         elif len(args) == 1:
             self.pen_color = args[0]
 
-    def heading(self) -> int:
+    def heading(self) -> float:
         """
         Return the turtle's current heading.
         """
         return self.bearing
+
+    def hideturtle(self):
+        self.show = False
+
+    def showturtle(self):
+        self.show = True
 
     @overload
     def bgcolor(self, color: str) -> None:

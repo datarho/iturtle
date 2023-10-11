@@ -2,6 +2,7 @@ export enum ActionType {
     MOVE_ABSOLUTE = 'M',
     MOVE_RELATIVE = 'm',
     LINE_ABSOLUTE = 'L',
+    DRAW = "D"
 }
 
 export interface TurtleAction {
