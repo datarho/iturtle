@@ -14,7 +14,7 @@ const Turtle: FunctionComponent = () => {
     const [y] = useModelState('y');
     const [bearing] = useModelState('bearing');
     const [show] = useModelState('show');
-    if (show)
+    if (show) {
         return (
             <svg x={x - 15} y={y - 15} width="32" height="32" xmlns="http://www.w3.org/2000/svg">
                 <g transform={`rotate(${(bearing + 90) % 360}, 15, 15)`} >
@@ -34,8 +34,10 @@ const Turtle: FunctionComponent = () => {
                 </g>
             </svg>
         );
-    else
+    }
+    else {
         return <svg />;
+    }
 }
 
 const TurtleQuest: FunctionComponent = () => {
