@@ -97,7 +97,7 @@ const TurtleQuest: FunctionComponent = () => {
                                         <circle
                                             cx={action.position[0]}
                                             cy={action.position[1]}
-                                            r={3}
+                                            r={2}
                                             stroke={action.color}
                                             strokeWidth={1}
                                             fill={action.color}
