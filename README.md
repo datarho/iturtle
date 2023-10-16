@@ -56,7 +56,7 @@ Move turtle to the origin – by default the middle of the coordinate plane – 
 turtle.home()
 ```
 
-`forward()`
+`forward()` or `fd()`
 
 Move the turtle forward by the specified distance, in the direction the turtle is headed.
 
@@ -64,13 +64,15 @@ Move the turtle forward by the specified distance, in the direction the turtle i
 turtle.forward(20)
 ```
 
+`backward()` or `bk()`
+
 Move the turtle backward by the specified distance, in the direction the turtle is headed.
 
 ```
 turtle.backward(20)
 ```
 
-`left()`
+`left()` or `lt()`
 
 Turn turtle left by angle units. Units are by default degrees.
 
@@ -78,7 +80,7 @@ Turn turtle left by angle units. Units are by default degrees.
 turtle.left(90)
 ```
 
-`right()`
+`right()` or `rt()`
 
 Turn turtle right by angle units. Units are by default degrees.
 
@@ -98,7 +100,7 @@ turtle.speed(1)
 
 ### Pen control    
 
-`penup()`
+`penup()` or `pu()`
 
 Pull the pen up – no drawing when moving.
 
@@ -106,7 +108,7 @@ Pull the pen up – no drawing when moving.
 turtle.penup()
 ```
 
-`pendown()`
+`pendown()` or `pd()` 
 
 Pull the pen down – drawing when moving.
 
@@ -138,6 +140,22 @@ You can set background color to color string, which is a color specification str
 
 ```
 turtle.bgcolor("black")
+```
+
+`goto()`
+
+Move turtle to an absolute position. If the pen is down, draw line. Do not change the turtle’s orientation.
+
+```
+turtle.goto(10, 10)
+```
+
+`teleport()`
+
+Move turtle to an absolute position. Unlike `goto(x, y)`, a line will not be drawn. The turtle's orientation does not change.
+
+```
+turtle.teleport(20, 30)
 ```
 
 ## Development Installation
