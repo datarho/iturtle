@@ -80,7 +80,7 @@ class Turtle(DOMWidget):
         """
         Move the Turtle to its home position.
         Example:
-            t.home()
+            turtle.home()
         """
         self.x = self.width / 2
         self.y = self.height / 2
@@ -93,23 +93,39 @@ class Turtle(DOMWidget):
         This function is used to delete the turtle’s drawings from the screen. Do not move state
         and position of the turtle as well as drawings of other turtles are not affected.
         Example:
-            t.clear()
+            turtle.clear()
         """
         self.actions = []
+
+    def pu(self):
+        """
+        Lift up the pen.
+        Example:
+            turtle.pu()
+        """
+        self.penup()
 
     def penup(self):
         """
         Lift up the pen.
         Example:
-            t.penup()
+            turtle.penup()
         """
         self.pen = False
+
+    def pd(self):
+        """
+        Put down the pen. Turtles start with their pen down.
+        Example:
+            turtle.pd()
+        """
+        self.pendown()
 
     def pendown(self):
         """
         Put down the pen. Turtles start with their pen down.
         Example:
-            t.pendown()
+            turtle.pendown()
         """
         self.pen = True
 
@@ -117,15 +133,23 @@ class Turtle(DOMWidget):
         """
         Change the speed of the turtle (range 1-10) where 1 is slowest and 10 is fastest.
         Example:
-            t.speed(10) # Full speed
+            turtle.speed(10) # Full speed
         """
         self.velocity = self._clamp(velocity, 1, 10)
+
+    def fd(self, distance: float):
+        """
+        Move the Turtle forward by certain units.
+        Example:
+            turtle.fd(100)
+        """
+        self.forward(distance)
 
     def forward(self, distance: float):
         """
         Move the Turtle forward by certain units.
         Example:
-            t.forward(100)
+            turtle.forward(100)
         """
         self.distance = distance
 
@@ -138,26 +162,26 @@ class Turtle(DOMWidget):
         else:
             self._add_action(ActionType.MOVE_ABSOLUTE)
 
+    def bk(self, distance: float):
+        """
+        Move the Turtle backward by certain units.
+        Example:
+            turtle.bk(100)
+        """
+        self.backward(distance)
+
     def backward(self, distance: float):
         """
         Move the Turtle backward by certain units.
         Example:
-            t.backward(100)
+            turtle.backward(100)
         """
         self.forward(-distance)
-
-    def right(self, angle: float):
-        """
-        Turn the turtle num degrees to the right.
-        Example:
-            t.right(90)
-        """
-        self.bearing = self.bearing + angle
 
     def goto(self, x: float, y: float):
         """Move the Turtle to the (x, y).
         Example::
-            t.goto(0, 0)
+            turtle.goto(0, 0)
         """
         x = x + self.width / 2
         y = self.height / 2 - y
@@ -172,7 +196,7 @@ class Turtle(DOMWidget):
     def teleport(self, x: float, y: float):
         """Teleport the Turtle to (x,y).
         Example::
-            t.teleport(0, 0)
+            turtle.teleport(0, 0)
         """
         x = x + self.width / 2
         y = self.height / 2 - y
@@ -181,10 +205,33 @@ class Turtle(DOMWidget):
         self.distance = 0
         self._add_action(ActionType.MOVE_ABSOLUTE)
 
+    def rt(self, angle: float):
+        """
+        Turn the turtle num degrees to the right.
+        Example:
+            turtle.rt(90)
+        """
+        self.right(angle)
+
+    def right(self, angle: float):
+        """
+        Turn the turtle num degrees to the right.
+        Example:
+            turtle.right(90)
+        """
+        self.bearing = self.bearing + angle
+
+    def lt(self, angle: float):
+        """Turn the Turtle num degrees to the left.
+        Example::
+            turtle.lt(90)
+        """
+        self.left(angle)
+
     def left(self, angle: int):
         """Turn the Turtle num degrees to the left.
         Example::
-            t.left(90)
+            turtle.left(90)
         """
         self.bearing = self.bearing - angle
 
@@ -205,7 +252,7 @@ class Turtle(DOMWidget):
         """
         Change the color of the pen with RGB color. Default is black.
         Example:
-            t.pencolor("red")
+            turtle.pencolor("red")
         """
         if len(args) == 3:
             r = self._clamp(args[0], 0, 255)
@@ -222,10 +269,38 @@ class Turtle(DOMWidget):
         """
         return self.bearing
 
+    def ht(self):
+        """
+        Make the turtle invisible. It’s a good idea to do this while you’re in the middle of doing some
+        complex drawing, because hiding the turtle speeds up the drawing observably.
+        Example:
+            turtle.hideturtle()
+        """
+        self.hideturtle()
+
     def hideturtle(self):
+        """
+        Make the turtle invisible. It’s a good idea to do this while you’re in the middle of doing some
+        complex drawing, because hiding the turtle speeds up the drawing observably.
+        Example:
+            turtle.hideturtle()
+        """
         self.show = False
 
+    def st(self):
+        """
+        Make the turtle visible.
+        Example:
+            turtle.st()
+        """
+        self.showturtle()
+
     def showturtle(self):
+        """
+        Make the turtle visible.
+        Example:
+            turtle.showturtle()
+        """
         self.show = True
 
     @overload
@@ -240,7 +315,7 @@ class Turtle(DOMWidget):
         """
         Set or return background color of the turtle screen.
         Example:
-            t.bgcolor("orange")
+            turtle.bgcolor("orange")
         """
         if len(args) == 3:
             r = self._clamp(args[0], 0, 255)
