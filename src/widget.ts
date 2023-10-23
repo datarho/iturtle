@@ -15,6 +15,7 @@ export interface WidgetModelState {
     _view_name: string;
     _view_module_version: string;
     _view_count: number;
+    id: number;
     width: number;
     height: number;
     x: number;
@@ -23,7 +24,7 @@ export interface WidgetModelState {
     velocity: number;
     background: string;
     bearing: number;
-    actions: Array<TurtleAction>;
+    action: TurtleAction;
     show: boolean;
 }
 

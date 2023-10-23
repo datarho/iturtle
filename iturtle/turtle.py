@@ -9,8 +9,7 @@ from typing import overload
 
 from IPython.display import clear_output, display
 from ipywidgets import DOMWidget
-from svg import SVG, Line, Rect, ViewBoxSpec
-from traitlets import List, Unicode, Float, Bool
+from traitlets import Int, Dict, Unicode, Float, Bool
 
 from .frontend import MODULE_NAME, MODULE_VERSION
 
@@ -36,6 +35,7 @@ class Turtle(DOMWidget):
     WIDTH = 800
     HEIGHT = 500
     PENSIZE = 1
+    DELAY = 2
 
     # Jupyter model variables.
 
@@ -48,16 +48,20 @@ class Turtle(DOMWidget):
 
     # Widget state goes here.
 
-    width = Float(WIDTH).tag(sync=True)
+    width = Int(WIDTH).tag(sync=True)
     height = Float(HEIGHT).tag(sync=True)
     x = Float(WIDTH / 2).tag(sync=True)
     y = Float(HEIGHT / 2).tag(sync=True)
-    actions = List().tag(sync=True)
+    id = Int(0).tag(sync=True)
     bearing = Float(0).tag(sync=True)
     distance = Float(0).tag(sync=True)
-    velocity = Float(6).tag(sync=True)  # avoid duplicate to speed method
+    velocity = Int(3).tag(sync=True)  # avoid duplicate to speed method
     background = Unicode("white").tag(sync=True)
     show = Bool(True).tag(sync=True)
+
+    # We will only sync delta action so that frontend will handle the whole states.
+
+    action = Dict().tag(sync=True)
 
     def __init__(self):
         """Create a Turtle.
@@ -71,8 +75,8 @@ class Turtle(DOMWidget):
         self.pen = True
         self.velocity = 6
         self.pen_color = "black"
-
-        self.actions = []
+        self.id = id(self)
+        self.action = {}
 
         self.home()
 
@@ -95,7 +99,7 @@ class Turtle(DOMWidget):
         Example:
             turtle.clear()
         """
-        self.actions = []
+        self.action = {}
 
     def pu(self):
         """
@@ -334,7 +338,7 @@ class Turtle(DOMWidget):
         return max(low, min(num, high))
 
     def _add_action(self, action_type: ActionType):
-        action = dict(
+        self.action = dict(
             type=action_type,
             pen=self.pen,
             color=self.pen_color,
@@ -342,45 +346,23 @@ class Turtle(DOMWidget):
             position=(self.x, self.y),
             velocity=self.velocity,
         )
-        self.actions = self.actions + [action]
-        if action_type in [ActionType.LINE_ABSOLUTE]:
-            self._run()
+
+        self._run()
 
     def _run(self):
         # By default the motion of a turtle is broken up into a number of individual steps determined by:
         #   steps = int(distance / (3 * 1.1**speed * speed))
         # At the default speed (3 or 'slow'), a 100px line would be drawn in 8 steps. At the slowest speed
-        # (1 or 'slowest'), 30 steps. At a fast speed (10 or 'fast'), 1 step. Oddly, the default speed isn't
-        # the 'normal' (6) speed! Each step incurs a screen update delay of 10ms by default.
-        steps = int(self.distance / (3 * 1.1**self.velocity * self.velocity))
-        sleep(abs(steps) * 0.01)
+        # (1 or 'slowest'), 30 steps. At a fast speed (10 or 'fast'), 1 step.
 
-    def _repr_svg_(self):
-        position = [0, 0]
-        lines = []
-
-        for action in self.actions:
-            if action["type"] == ActionType.MOVE_ABSOLUTE:
-                position = action["position"]
-            elif action["type"] == ActionType.LINE_ABSOLUTE:
-                line = Line(
-                    x1=position[0],
-                    y1=position[1],
-                    x2=action["position"][0],
-                    y2=action["position"][1],
-                    stroke=action["color"],
-                )
-                lines.append(line)
-                position = action["position"]
-
-        pic = SVG(
-            width=self.width,
-            height=self.height,
-            viewBox=ViewBoxSpec(0, 0, self.width + 1, self.height + 1),
-            elements=[
-                Rect(width=self.width, height=self.height, fill=self.background),
-            ]
-            + lines,
+        steps = max(
+            abs(self.distance)
+            * self.DELAY
+            / (3 * 1.1**self.velocity * self.velocity),
+            1,
         )
 
-        return str(pic)
+        # Each step incurs a screen update delay of 100ms by default. We should not shorten the delay as
+        # websocket won't be able to process all the messages in a short time.
+
+        sleep(steps * 0.05)
