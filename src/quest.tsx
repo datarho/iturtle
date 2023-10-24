@@ -1,6 +1,6 @@
 import { WidgetModel } from '@jupyter-widgets/base';
-import React, { FunctionComponent } from 'react';
-import { ActionType } from './interface';
+import React, { FunctionComponent, useEffect, useState } from 'react';
+import { ActionType, TurtleAction } from './interface';
 import { useModelState, WidgetModelContext } from './store';
 
 import '../css/widget.css';
@@ -14,6 +14,7 @@ const Turtle: FunctionComponent = () => {
     const [y] = useModelState('y');
     const [bearing] = useModelState('bearing');
     const [show] = useModelState('show');
+
     if (show) {
         return (
             <svg x={x - 15} y={y - 15} width="32" height="32" xmlns="http://www.w3.org/2000/svg">
@@ -34,17 +35,41 @@ const Turtle: FunctionComponent = () => {
                 </g>
             </svg>
         );
-    }
-    else {
+    } else {
         return <svg />;
     }
 }
 
 const TurtleQuest: FunctionComponent = () => {
+    const [id] = useModelState('id');
     const [width] = useModelState('width');
     const [height] = useModelState('height');
-    const [actions] = useModelState('actions');
+    const [action] = useModelState('action');
     const [background] = useModelState('background');
+
+    const [actions, setActions] = useState<TurtleAction[]>([]);
+
+    useEffect(() => {
+        const saved = localStorage.getItem(id.toString());
+
+        if (saved) {
+            setActions(JSON.parse(saved));
+        }
+    }, [id]);
+
+    useEffect(() => {
+        if (id) {
+            // As model state now only provides addendum action, we'll need to accumulate the actions whenever
+            // there is a new one. However, we'll need to persist existing actions before the change, as we'll
+            // load these actions during mount with the latest action syncing from the kernel :-)
+
+            setActions(actions => {
+                localStorage.setItem(id.toString(), JSON.stringify(actions));
+
+                return [...actions, action];
+            });
+        }
+    }, [action, id]);
 
     let position: [number, number] = [0, 0];
 
