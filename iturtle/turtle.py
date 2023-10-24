@@ -49,7 +49,7 @@ class Turtle(DOMWidget):
     # Widget state goes here.
 
     width = Int(WIDTH).tag(sync=True)
-    height = Float(HEIGHT).tag(sync=True)
+    height = Int(HEIGHT).tag(sync=True)
     x = Float(WIDTH / 2).tag(sync=True)
     y = Float(HEIGHT / 2).tag(sync=True)
     id = Int(0).tag(sync=True)
