@@ -2,7 +2,7 @@ export enum ActionType {
     MOVE_ABSOLUTE = 'M',
     MOVE_RELATIVE = 'm',
     LINE_ABSOLUTE = 'L',
-    DRAW = 'D'
+    DRAW_DOT = 'D'
 }
 
 export interface TurtleAction {
@@ -13,4 +13,5 @@ export interface TurtleAction {
     change: boolean;
     velocity: number;
     distance: number;
+    size: number;
 }

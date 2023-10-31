@@ -22,7 +22,7 @@ class ActionType(str, Enum):
     MOVE_ABSOLUTE = "M"
     MOVE_RELATIVE = "m"
     LINE_ABSOLUTE = "L"
-    DRAW = "D"
+    DRAW_DOT = "D"
 
 
 class Turtle(DOMWidget):
@@ -76,6 +76,8 @@ class Turtle(DOMWidget):
         self.velocity = 6
         self.pen_color = "black"
         self.id = id(self)
+        self.size = self.PENSIZE
+        self.color = self.pen_color
         self.action = {}
 
         self.home()
@@ -160,6 +162,7 @@ class Turtle(DOMWidget):
         alpha = radians(self.bearing)
         self.x += distance * cos(alpha)
         self.y += distance * sin(alpha)
+        self.color = self.pen_color
 
         if self.pen:
             self._add_action(ActionType.LINE_ABSOLUTE)
@@ -184,7 +187,7 @@ class Turtle(DOMWidget):
 
     def goto(self, x: float, y: float):
         """Move the Turtle to the (x, y).
-        Example::
+        Example:
             turtle.goto(0, 0)
         """
         x = x + self.width / 2
@@ -199,7 +202,7 @@ class Turtle(DOMWidget):
 
     def teleport(self, x: float, y: float):
         """Teleport the Turtle to (x,y).
-        Example::
+        Example:
             turtle.teleport(0, 0)
         """
         x = x + self.width / 2
@@ -227,22 +230,55 @@ class Turtle(DOMWidget):
 
     def lt(self, angle: float):
         """Turn the Turtle num degrees to the left.
-        Example::
+        Example:
             turtle.lt(90)
         """
         self.left(angle)
 
     def left(self, angle: int):
         """Turn the Turtle num degrees to the left.
-        Example::
+        Example:
             turtle.left(90)
         """
         self.bearing = self.bearing - angle
 
-    def dot(self):
+        self.dot(1, ("color"))
+
+    @overload
+    def dot(self) -> None:
+        ...
+
+    @overload
+    def dot(self, size: int, color: str) -> None:
+        ...
+
+    @overload
+    def dot(self, size: int, color: tuple[int, int, int]) -> None:
+        ...
+
+    def dot(self, size: int = None, *color) -> None:
+        """Draw a circular dot with diameter size, using color.
+        Example:
+            turtle.dot()
+            turtle.dot(20, "blue")
+            turtle.dot(20, (254, 235, 105))
+        """
         self.distance = 0
-        self._add_action(ActionType.DRAW)
-        pass
+
+        if size is None:
+            self.size = max(self.PENSIZE + 4, 2 * self.PENSIZE)
+        else:
+            self.size = size
+
+        if len(color) == 3:
+            r = self._clamp(color[0], 0, 255)
+            g = self._clamp(color[1], 0, 255)
+            b = self._clamp(color[2], 0, 255)
+            self.color = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
+        elif len(color) == 1:
+            self.color = color[0]
+
+        self._add_action(ActionType.DRAW_DOT)
 
     @overload
     def pencolor(self, color: str) -> None:
@@ -252,20 +288,20 @@ class Turtle(DOMWidget):
     def pencolor(self, r: int, g: int, b: int) -> None:
         ...
 
-    def pencolor(self, *args) -> None:
+    def pencolor(self, *color) -> None:
         """
         Change the color of the pen with RGB color. Default is black.
         Example:
             turtle.pencolor("red")
         """
-        if len(args) == 3:
-            r = self._clamp(args[0], 0, 255)
-            g = self._clamp(args[1], 0, 255)
-            b = self._clamp(args[2], 0, 255)
+        if len(color) == 3:
+            r = self._clamp(color[0], 0, 255)
+            g = self._clamp(color[1], 0, 255)
+            b = self._clamp(color[2], 0, 255)
 
             self.pen_color = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
-        elif len(args) == 1:
-            self.pen_color = args[0]
+        elif len(color) == 1:
+            self.pen_color = color[0]
 
     def heading(self) -> float:
         """
@@ -341,10 +377,11 @@ class Turtle(DOMWidget):
         self.action = dict(
             type=action_type,
             pen=self.pen,
-            color=self.pen_color,
+            color=self.color,
             distance=self.distance,
             position=(self.x, self.y),
             velocity=self.velocity,
+            size=self.size,
         )
 
         self._run()
