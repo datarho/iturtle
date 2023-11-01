@@ -99,6 +99,7 @@ def test_turtle_goto():
     turtle = Turtle()
     turtle.forward(10)
     turtle.goto(0, 0)
+
     assert turtle.x == Turtle.WIDTH / 2
     assert turtle.y == Turtle.HEIGHT / 2
 
@@ -110,5 +111,31 @@ def test_turtle_teleport():
     turtle = Turtle()
     turtle.forward(10)
     turtle.teleport(0, 0)
+
     assert turtle.x == Turtle.WIDTH / 2
     assert turtle.y == Turtle.HEIGHT / 2
+
+
+def test_turtle_dot():
+    """
+    Check turtle dot method.
+    """
+    turtle = Turtle()
+
+    turtle.dot()
+
+    assert turtle.action["size"] == 5
+
+    turtle.dot(50)
+
+    assert turtle.action["size"] == 50
+
+    turtle.dot(50, "blue")
+
+    assert turtle.action["color"] == "blue"
+    assert turtle.action["size"] == 50
+
+    turtle.dot(50, (255, 0, 0))
+
+    assert turtle.action["color"] == (255, 0, 0)
+    assert turtle.action["size"] == 50
