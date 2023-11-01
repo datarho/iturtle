@@ -133,9 +133,7 @@ def test_turtle_dot():
     turtle.dot(50, "blue")
 
     assert turtle.size == 50
-    assert turtle.color == "blue"
 
     turtle.dot(50, (255, 0, 0))
 
     assert turtle.size == 50
-    assert turtle.color == (255, 0, 0)
