@@ -77,7 +77,6 @@ class Turtle(DOMWidget):
         self.pen_color = "black"
         self.id = id(self)
         self.size = self.PENSIZE
-        self.color = self.pen_color
         self.action = {}
 
         self.home()
@@ -162,8 +161,6 @@ class Turtle(DOMWidget):
         alpha = radians(self.bearing)
         self.x += distance * cos(alpha)
         self.y += distance * sin(alpha)
-        self.color = self.pen_color
-
         if self.pen:
             self._add_action(ActionType.LINE_ABSOLUTE)
         else:
@@ -242,8 +239,6 @@ class Turtle(DOMWidget):
         """
         self.bearing = self.bearing - angle
 
-        self.dot(1, ("color"))
-
     @overload
     def dot(self) -> None:
         ...
@@ -270,15 +265,17 @@ class Turtle(DOMWidget):
         else:
             self.size = size
 
+        tmp_color = self.pen_color
         if len(color) == 3:
             r = self._clamp(color[0], 0, 255)
             g = self._clamp(color[1], 0, 255)
             b = self._clamp(color[2], 0, 255)
-            self.color = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
+            self.pen_color = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
         elif len(color) == 1:
-            self.color = color[0]
+            self.pen_color = color[0]
 
         self._add_action(ActionType.DRAW_DOT)
+        self.pen_color = tmp_color
 
     @overload
     def pencolor(self, color: str) -> None:
@@ -377,7 +374,7 @@ class Turtle(DOMWidget):
         self.action = dict(
             type=action_type,
             pen=self.pen,
-            color=self.color,
+            color=self.pen_color,
             distance=self.distance,
             position=(self.x, self.y),
             velocity=self.velocity,
