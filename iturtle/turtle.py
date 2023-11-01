@@ -73,10 +73,10 @@ class Turtle(DOMWidget):
         display(self)
 
         self.pen = True
-        self.velocity = 6
         self.pen_color = "black"
+        self.pen_size = self.PENSIZE
+        self.velocity = 6
         self.id = id(self)
-        self.size = self.PENSIZE
         self.action = {}
 
         self.home()
@@ -260,12 +260,12 @@ class Turtle(DOMWidget):
         """
         self.distance = 0
 
-        if size is None:
-            self.size = max(self.PENSIZE + 4, 2 * self.PENSIZE)
-        else:
-            self.size = size
-
         tmp_color = self.pen_color
+        tmp_size = self.pen_size
+        if size is None:
+            self.pen_size = max(self.PENSIZE + 4, 2 * self.PENSIZE)
+        else:
+            self.pen_size = size
         if len(color) == 3:
             r = self._clamp(color[0], 0, 255)
             g = self._clamp(color[1], 0, 255)
@@ -276,6 +276,7 @@ class Turtle(DOMWidget):
 
         self._add_action(ActionType.DRAW_DOT)
         self.pen_color = tmp_color
+        self.pen_size = tmp_size
 
     @overload
     def pencolor(self, color: str) -> None:
@@ -378,7 +379,7 @@ class Turtle(DOMWidget):
             distance=self.distance,
             position=(self.x, self.y),
             velocity=self.velocity,
-            size=self.size,
+            size=self.pen_size,
         )
 
         self._run()

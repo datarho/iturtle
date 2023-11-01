@@ -124,16 +124,18 @@ def test_turtle_dot():
 
     turtle.dot()
 
-    assert turtle.size == 5
+    assert turtle.action["size"] == 5
 
     turtle.dot(50)
 
-    assert turtle.size == 50
+    assert turtle.action["size"] == 50
 
     turtle.dot(50, "blue")
 
-    assert turtle.size == 50
+    assert turtle.action["color"] == "blue"
+    assert turtle.action["size"] == 50
 
     turtle.dot(50, (255, 0, 0))
 
-    assert turtle.size == 50
+    assert turtle.action["color"] == (255, 0, 0)
+    assert turtle.action["size"] == 50
