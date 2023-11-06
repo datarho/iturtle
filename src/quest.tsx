@@ -117,20 +117,18 @@ const TurtleQuest: FunctionComponent = () => {
                                 return undefined;
 
                             case ActionType.DRAW_DOT:
-                                if (action.pen) {
-                                    const visual =
-                                        <circle
-                                            cx={action.position[0]}
-                                            cy={action.position[1]}
-                                            r={action.size / 2}
-                                            stroke={action.color}
-                                            strokeWidth={1}
-                                            fill={action.color}
-                                        />;
-                                    position = action.position;
-                                    return visual;
-                                }
-                                return undefined;
+                                position = action.position;
+
+                                return (
+                                    <circle
+                                        cx={action.position[0]}
+                                        cy={action.position[1]}
+                                        r={action.size / 2}
+                                        stroke={action.color}
+                                        strokeWidth={1}
+                                        fill={action.color}
+                                    />
+                                );
                             default:
                                 return undefined;
                         }
