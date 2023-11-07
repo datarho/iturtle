@@ -139,3 +139,17 @@ def test_turtle_dot():
 
     assert turtle.action["color"] == (255, 0, 0)
     assert turtle.action["size"] == 50
+
+
+def test_turtle_towards():
+    """
+    Check turtle towards, pos and setheading method.
+    """
+    turtle = Turtle()
+    turtle.forward(10)
+    turtle.setheading(turtle.towards(0, 0))
+    turtle.fd(10)
+    assert turtle.x == Turtle.WIDTH / 2
+    assert turtle.y == Turtle.HEIGHT / 2
+    assert abs(turtle.pos()[0]) < 1e-5
+    assert abs(turtle.pos()[1]) < 1e-5
