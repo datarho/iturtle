@@ -189,11 +189,23 @@ class Turtle(DOMWidget):
         """
         self.forward(-distance)
 
-    def goto(self, x: float, y: float):
+    @overload
+    def goto(self, x: tuple[float, float]) -> None:
+        ...
+
+    @overload
+    def goto(self, x: float, y: float) -> None:
+        ...
+
+    def goto(self, *coordinates) -> None:
         """Move the Turtle to the (x, y).
         Example:
             turtle.goto(0, 0)
         """
+        if len(coordinates) == 1:
+            x, y = coordinates[0]
+        else:
+            x, y = coordinates
         self.distance = sqrt((self.ix - x) ** 2 + (self.iy - y) ** 2)
         self.ix = x
         self.iy = y
@@ -321,7 +333,26 @@ class Turtle(DOMWidget):
     def pos(self):
         return (self.ix, self.iy)
 
-    def towards(self, x: float, y: float):
+    @overload
+    def towards(self, x: tuple[float, float]) -> None:
+        ...
+
+    @overload
+    def towards(self, x: float, y: float) -> None:
+        ...
+
+    def towards(self, *coordinates) -> None:
+        """
+        Return the angle between the line from turtle position to position specified by (x,y), the vector
+        or the other turtle.
+        Example:
+            turtle.towards(0,0)
+        """
+        if len(coordinates) == 1:
+            x, y = coordinates[0]
+        else:
+            x, y = coordinates
+
         dx = x - self.ix
         dy = y - self.iy
         if dx or dy:
