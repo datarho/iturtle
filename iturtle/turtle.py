@@ -3,7 +3,7 @@ Interactive turtle widget module
 """
 
 from enum import Enum
-from math import cos, radians, sin, sqrt
+from math import cos, radians, sin, sqrt, degrees, atan2
 from time import sleep
 from typing import overload
 
@@ -75,11 +75,16 @@ class Turtle(DOMWidget):
         self.pen = True
         self.pen_color = "black"
         self.pen_size = self.PENSIZE
+        self.ix = 0
+        self.iy = 0
         self.velocity = 6
         self.id = id(self)
         self.action = {}
 
         self.home()
+
+    def turtle_pos(self):
+        return (self.ix + self.width / 2, self.height / 2 - self.iy)
 
     def home(self):
         """
@@ -87,8 +92,9 @@ class Turtle(DOMWidget):
         Example:
             turtle.home()
         """
-        self.x = self.width / 2
-        self.y = self.height / 2
+        self.ix = 0
+        self.iy = 0
+        self.x, self.y = self.turtle_pos()
         self.distance = 0
         self.bearing = 0
         self._add_action(ActionType.MOVE_ABSOLUTE)
@@ -159,8 +165,9 @@ class Turtle(DOMWidget):
         self.distance = distance
 
         alpha = radians(self.bearing)
-        self.x += distance * cos(alpha)
-        self.y += distance * sin(alpha)
+        self.ix += distance * cos(alpha)
+        self.iy -= distance * sin(alpha)
+        self.x, self.y = self.turtle_pos()
         if self.pen:
             self._add_action(ActionType.LINE_ABSOLUTE)
         else:
@@ -182,16 +189,27 @@ class Turtle(DOMWidget):
         """
         self.forward(-distance)
 
-    def goto(self, x: float, y: float):
+    @overload
+    def goto(self, x: tuple[float, float]) -> None:
+        ...
+
+    @overload
+    def goto(self, x: float, y: float) -> None:
+        ...
+
+    def goto(self, *coordinates) -> None:
         """Move the Turtle to the (x, y).
         Example:
             turtle.goto(0, 0)
         """
-        x = x + self.width / 2
-        y = self.height / 2 - y
-        self.distance = sqrt((self.x - x) ** 2 + (self.y - y) ** 2)
-        self.x = x
-        self.y = y
+        if len(coordinates) == 1:
+            x, y = coordinates[0]
+        else:
+            x, y = coordinates
+        self.distance = sqrt((self.ix - x) ** 2 + (self.iy - y) ** 2)
+        self.ix = x
+        self.iy = y
+        self.x, self.y = self.turtle_pos()
         if self.pen:
             self._add_action(ActionType.LINE_ABSOLUTE)
         else:
@@ -202,10 +220,9 @@ class Turtle(DOMWidget):
         Example:
             turtle.teleport(0, 0)
         """
-        x = x + self.width / 2
-        y = self.height / 2 - y
-        self.x = x
-        self.y = y
+        self.ix = x
+        self.iy = y
+        self.x, self.y = self.turtle_pos()
         self.distance = 0
         self._add_action(ActionType.MOVE_ABSOLUTE)
 
@@ -306,6 +323,42 @@ class Turtle(DOMWidget):
         Return the turtle's current heading.
         """
         return self.bearing
+
+    def setheading(self, bearing: float):
+        """
+        Set the turtle's current heading.
+        """
+        self.bearing = bearing
+
+    def pos(self):
+        return (self.ix, self.iy)
+
+    @overload
+    def towards(self, x: tuple[float, float]) -> None:
+        ...
+
+    @overload
+    def towards(self, x: float, y: float) -> None:
+        ...
+
+    def towards(self, *coordinates) -> None:
+        """
+        Return the angle between the line from turtle position to position specified by (x,y), the vector
+        or the other turtle.
+        Example:
+            turtle.towards(0,0)
+        """
+        if len(coordinates) == 1:
+            x, y = coordinates[0]
+        else:
+            x, y = coordinates
+
+        dx = x - self.ix
+        dy = y - self.iy
+        if dx or dy:
+            return degrees(atan2(dx, dy)) - 90
+        else:
+            return self.bearing
 
     def ht(self):
         """
