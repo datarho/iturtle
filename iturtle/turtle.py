@@ -5,7 +5,7 @@ Interactive turtle widget module
 from enum import Enum
 from math import cos, radians, sin, sqrt, degrees, atan2
 from time import sleep
-from typing import overload
+from typing import Tuple, overload
 
 from IPython.display import clear_output, display
 from ipywidgets import DOMWidget
@@ -190,7 +190,7 @@ class Turtle(DOMWidget):
         self.forward(-distance)
 
     @overload
-    def goto(self, x: tuple[float, float]) -> None:
+    def goto(self, x: Tuple[float, float]) -> None:
         ...
 
     @overload
@@ -265,7 +265,7 @@ class Turtle(DOMWidget):
         ...
 
     @overload
-    def dot(self, size: int, color: tuple[int, int, int]) -> None:
+    def dot(self, size: int, color: Tuple[int, int, int]) -> None:
         ...
 
     def dot(self, size: int = None, *color) -> None:
@@ -334,7 +334,7 @@ class Turtle(DOMWidget):
         return (self.ix, self.iy)
 
     @overload
-    def towards(self, x: tuple[float, float]) -> None:
+    def towards(self, x: Tuple[float, float]) -> None:
         ...
 
     @overload
