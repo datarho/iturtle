@@ -1,6 +1,6 @@
 import { WidgetModel } from '@jupyter-widgets/base';
 import React, { FunctionComponent, useEffect, useState } from 'react';
-import { ActionType, TurtleAction } from './interface';
+import { ActionType, FontSpec, TurtleAction } from './interface';
 import { useModelState, WidgetModelContext } from './store';
 
 import '../css/widget.css';
@@ -73,25 +73,39 @@ const TurtleQuest: FunctionComponent = () => {
         }
     }, [action, id]);
 
-    const getTextWidth = (font?: [family: string, size: number, weight: string], text?: string) => {
+    const getTextWidth = (font?: FontSpec, text?: string) => {
         if (!font || !text) {
             return 0;
         }
 
         const fragment: DocumentFragment = document.createDocumentFragment();
-        const canvas: HTMLCanvasElement = document.createElement("canvas");
+        const canvas: HTMLCanvasElement = document.createElement('canvas');
 
         fragment.appendChild(canvas);
-        
-        const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+
+        const context = canvas.getContext('2d') as CanvasRenderingContext2D;
 
         context.font = `${font[2]} ${font[1]}px ${font[0]}`;
 
-        console.log(`${font[2]} ${font[1]}px ${font[0]}`)
+        return context.measureText(text).width;
+    }
 
-        const metrics = context.measureText(text);
+    const getTextPos = (action: TurtleAction) => {
+        if (action.type !== ActionType.WRITE_TEXT) {
+            throw new Error('invalid argument');
+        }
 
-        return metrics.width;
+        const width = getTextWidth(action.font, action.text);
+
+        switch (action.align) {
+            case 'left':
+                return [action.position[0], action.position[1]];
+            case 'center':
+                return [action.position[0] - width / 2, action.position[1]];
+            case 'right':
+            default:
+                return [action.position[0] - width, action.position[1]];
+        }
     }
 
     let position = [0, 0];
@@ -152,21 +166,17 @@ const TurtleQuest: FunctionComponent = () => {
                                 );
 
                             case ActionType.WRITE_TEXT:
-                                position = action.position.slice();
+                                position = getTextPos(action)
 
                                 if (action.move) {
-                                    console.log(getTextWidth(action.font, action.text))
-
-                                    position[0] += getTextWidth(action.font, action.text);
-
                                     setX(position[0]);
                                     setY(position[1]);
                                 }
 
                                 return (
-                                    <text 
-                                        x={action.position[0]}
-                                        y={action.position[1]}
+                                    <text
+                                        x={position[0]}
+                                        y={position[1]}
                                         font-family={action.font?.[0]}
                                         font-size={action.font?.[1]}
                                         font-weight={action.font?.[2]}

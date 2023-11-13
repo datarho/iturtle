@@ -67,7 +67,7 @@ class Turtle(DOMWidget):
     def __init__(self):
         """
         Create a Turtle.
-        
+
         Example:
         >>> t = Turtle()
         """
@@ -89,8 +89,9 @@ class Turtle(DOMWidget):
         # Text related variable.
 
         self.text = ""
-        self.font = ("Consolas", 8, "normal")
+        self.font = ("Arial", 8, "normal")
         self.move = False
+        self.align = "left"
 
         self.home()
 
@@ -100,7 +101,7 @@ class Turtle(DOMWidget):
     def home(self):
         """
         Move the Turtle to its home position.
-        
+
         Example:
         >>> turtle.home()
         """
@@ -115,7 +116,7 @@ class Turtle(DOMWidget):
         """
         This function is used to delete the turtle’s drawings from the screen. Do not move state
         and position of the turtle as well as drawings of other turtles are not affected.
-        
+
         Example:
         >>> turtle.clear()
         """
@@ -124,7 +125,7 @@ class Turtle(DOMWidget):
     def pu(self):
         """
         Lift up the pen.
-        
+
         Example:
         >>> turtle.pu()
         """
@@ -133,7 +134,7 @@ class Turtle(DOMWidget):
     def penup(self):
         """
         Lift up the pen.
-        
+
         Example:
         >>> turtle.penup()
         """
@@ -142,7 +143,7 @@ class Turtle(DOMWidget):
     def pd(self):
         """
         Put down the pen. Turtles start with their pen down.
-        
+
         Example:
         >>> turtle.pd()
         """
@@ -151,7 +152,7 @@ class Turtle(DOMWidget):
     def pendown(self):
         """
         Put down the pen. Turtles start with their pen down.
-        
+
         Example:
         >>> turtle.pendown()
         """
@@ -160,7 +161,7 @@ class Turtle(DOMWidget):
     def speed(self, velocity: int):
         """
         Change the speed of the turtle (range 1-10) where 1 is slowest and 10 is fastest.
-        
+
         Example:
         >>> turtle.speed(10) # Full speed
         """
@@ -169,7 +170,7 @@ class Turtle(DOMWidget):
     def fd(self, distance: float):
         """
         Move the Turtle forward by certain units.
-        
+
         Example:
         >>> turtle.fd(100)
         """
@@ -178,7 +179,7 @@ class Turtle(DOMWidget):
     def forward(self, distance: float):
         """
         Move the Turtle forward by certain units.
-        
+
         Example:
         >>> turtle.forward(100)
         """
@@ -196,7 +197,7 @@ class Turtle(DOMWidget):
     def bk(self, distance: float):
         """
         Move the Turtle backward by certain units.
-        
+
         Example:
         >>> turtle.bk(100)
         """
@@ -205,7 +206,7 @@ class Turtle(DOMWidget):
     def backward(self, distance: float):
         """
         Move the Turtle backward by certain units.
-        
+
         Example:
         >>> turtle.backward(100)
         """
@@ -221,7 +222,7 @@ class Turtle(DOMWidget):
 
     def goto(self, *coordinates) -> None:
         """Move the Turtle to the (x, y).
-        
+
         Example:
         >>> turtle.goto(0, 0)
         """
@@ -240,7 +241,7 @@ class Turtle(DOMWidget):
 
     def teleport(self, x: float, y: float):
         """Teleport the Turtle to (x,y).
-        
+
         Example:
         >>> turtle.teleport(0, 0)
         """
@@ -253,7 +254,7 @@ class Turtle(DOMWidget):
     def rt(self, angle: float):
         """
         Turn the turtle num degrees to the right.
-        
+
         Example:
         >>> turtle.rt(90)
         """
@@ -262,7 +263,7 @@ class Turtle(DOMWidget):
     def right(self, angle: float):
         """
         Turn the turtle num degrees to the right.
-        
+
         Example:
         >>> turtle.right(90)
         """
@@ -270,7 +271,7 @@ class Turtle(DOMWidget):
 
     def lt(self, angle: float):
         """Turn the Turtle num degrees to the left.
-        
+
         Example:
         >>> turtle.lt(90)
         """
@@ -278,7 +279,7 @@ class Turtle(DOMWidget):
 
     def left(self, angle: int):
         """Turn the Turtle num degrees to the left.
-        
+
         Example:
         >>> turtle.left(90)
         """
@@ -298,7 +299,7 @@ class Turtle(DOMWidget):
 
     def dot(self, size: int = None, *color) -> None:
         """Draw a circular dot with diameter size, using color.
-        
+
         Example:
         >>> turtle.dot()
         >>> turtle.dot(20, "blue")
@@ -335,7 +336,7 @@ class Turtle(DOMWidget):
     def pencolor(self, *color) -> None:
         """
         Change the color of the pen with RGB color. Default is black.
-        
+
         Example:
         >>> turtle.pencolor("red")
         """
@@ -375,7 +376,7 @@ class Turtle(DOMWidget):
         """
         Return the angle between the line from turtle position to position specified by (x,y), the vector
         or the other turtle.
-        
+
         Example:
         >>> turtle.towards(0,0)
         """
@@ -395,7 +396,7 @@ class Turtle(DOMWidget):
         """
         Make the turtle invisible. It’s a good idea to do this while you’re in the middle of doing some
         complex drawing, because hiding the turtle speeds up the drawing observably.
-        
+
         Example:
         >>> turtle.hideturtle()
         """
@@ -405,7 +406,7 @@ class Turtle(DOMWidget):
         """
         Make the turtle invisible. It’s a good idea to do this while you’re in the middle of doing some
         complex drawing, because hiding the turtle speeds up the drawing observably.
-        
+
         Example:
         >>> turtle.hideturtle()
         """
@@ -422,7 +423,7 @@ class Turtle(DOMWidget):
     def showturtle(self):
         """
         Make the turtle visible.
-        
+
         Example:
         >>> turtle.showturtle()
         """
@@ -439,7 +440,7 @@ class Turtle(DOMWidget):
     def bgcolor(self, *args) -> None:
         """
         Set or return background color of the turtle screen.
-        
+
         Example:
         >>> turtle.bgcolor("orange")
         """
@@ -452,8 +453,13 @@ class Turtle(DOMWidget):
         elif len(args) == 1:
             self.background = args[0]
 
-    # def write(self, arg, move: bool, align: str, font: Tuple[str, int, str]) -> None:
-    def write(self, arg, move: bool = False) -> None:
+    def write(
+        self,
+        arg,
+        move: bool = False,
+        align: str = "left",
+        font: Tuple[str, int, str] = ("Arial", 8, "normal"),
+    ) -> None:
         """
         Write text at the current turtle position.
 
@@ -475,9 +481,11 @@ class Turtle(DOMWidget):
         """
         self.text = str(arg)
         self.move = move
+        self.align = align.lower()
+        self.font = font
         self._add_action(ActionType.WRITE_TEXT)
         self.text = None
-    
+
     def save(self) -> None:
         clear_output()
         display(self)
@@ -504,6 +512,7 @@ class Turtle(DOMWidget):
             action["text"] = self.text
             action["font"] = self.font
             action["move"] = self.move
+            action["align"] = self.align
 
         # Swap to instance action variable for sync.
 

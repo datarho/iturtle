@@ -1,3 +1,5 @@
+export type FontSpec = [family: string, size: number, weight: string];
+
 export enum ActionType {
     MOVE_ABSOLUTE = 'M',
     MOVE_RELATIVE = 'm',
@@ -16,6 +18,7 @@ export interface TurtleAction {
     distance: number;
     size: number;
     text?: string;
-    font?: [family: string, size: number, weight: string];
+    font?: FontSpec;
+    align?: string;
     move?: boolean;
 }
