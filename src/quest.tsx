@@ -41,6 +41,8 @@ const Turtle: FunctionComponent = () => {
 }
 
 const TurtleQuest: FunctionComponent = () => {
+    const [, setX] = useModelState('x');
+    const [, setY] = useModelState('y');
     const [id] = useModelState('id');
     const [width] = useModelState('width');
     const [height] = useModelState('height');
@@ -71,7 +73,28 @@ const TurtleQuest: FunctionComponent = () => {
         }
     }, [action, id]);
 
-    let position: [number, number] = [0, 0];
+    const getTextWidth = (font?: [family: string, size: number, weight: string], text?: string) => {
+        if (!font || !text) {
+            return 0;
+        }
+
+        const fragment: DocumentFragment = document.createDocumentFragment();
+        const canvas: HTMLCanvasElement = document.createElement("canvas");
+
+        fragment.appendChild(canvas);
+        
+        const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+
+        context.font = `${font[2]} ${font[1]}px ${font[0]}`;
+
+        console.log(`${font[2]} ${font[1]}px ${font[0]}`)
+
+        const metrics = context.measureText(text);
+
+        return metrics.width;
+    }
+
+    let position = [0, 0];
 
     return (
         <div className="Widget">
@@ -89,7 +112,7 @@ const TurtleQuest: FunctionComponent = () => {
                     actions?.map((action, index) => {
                         switch (action.type) {
                             case ActionType.MOVE_ABSOLUTE:
-                                position = action.position;
+                                position = action.position.slice();
                                 return undefined;
 
                             case ActionType.LINE_ABSOLUTE:
@@ -110,15 +133,13 @@ const TurtleQuest: FunctionComponent = () => {
                                             <animate attributeName="stroke-dashoffset" from="1000" to="0" dur={`${duration}ms`} calcMode="linear forwards"></animate>
                                         </line>;
 
-                                    position = action.position;
+                                    position = action.position.slice();
 
                                     return visual;
                                 }
                                 return undefined;
 
                             case ActionType.DRAW_DOT:
-                                position = action.position;
-
                                 return (
                                     <circle
                                         cx={action.position[0]}
@@ -129,6 +150,31 @@ const TurtleQuest: FunctionComponent = () => {
                                         fill={action.color}
                                     />
                                 );
+
+                            case ActionType.WRITE_TEXT:
+                                position = action.position.slice();
+
+                                if (action.move) {
+                                    console.log(getTextWidth(action.font, action.text))
+
+                                    position[0] += getTextWidth(action.font, action.text);
+
+                                    setX(position[0]);
+                                    setY(position[1]);
+                                }
+
+                                return (
+                                    <text 
+                                        x={action.position[0]}
+                                        y={action.position[1]}
+                                        font-family={action.font?.[0]}
+                                        font-size={action.font?.[1]}
+                                        font-weight={action.font?.[2]}
+                                    >
+                                        {action.text}
+                                    </text>
+                                )
+
                             default:
                                 return undefined;
                         }
