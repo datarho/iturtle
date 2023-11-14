@@ -186,19 +186,20 @@ def test_turtle_write():
     turtle.write("hello world")
 
     assert turtle.action["text"] == "hello world"
-    assert turtle.action["move"] == False
+    assert turtle.action["align"] == "left"
+    assert turtle.action["font"] == ("Arial", 8, "normal")
 
     turtle = Turtle()
 
-    turtle.write("hello world", True)
+    turtle.write("hello world", "right")
 
     assert turtle.action["text"] == "hello world"
-    assert turtle.action["move"] == True
+    assert turtle.action["align"] == "right"
+    assert turtle.action["font"] == ("Arial", 8, "normal")
 
     turtle = Turtle()
     turtle.write("hello", font=("Courier", 90, "normal"), align="center")
 
     assert turtle.action["text"] == "hello"
-    assert turtle.action["move"] == False
     assert turtle.action["font"] == ("Courier", 90, "normal")
     assert turtle.action["align"] == "center"

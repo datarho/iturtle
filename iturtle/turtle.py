@@ -1,15 +1,14 @@
 """
 Interactive turtle widget module
 """
-
 from enum import Enum
-from math import cos, radians, sin, sqrt, degrees, atan2
+from math import atan2, cos, degrees, radians, sin, sqrt
 from time import sleep
 from typing import Tuple, overload
 
 from IPython.display import clear_output, display
 from ipywidgets import DOMWidget
-from traitlets import Int, Dict, Unicode, Float, Bool
+from traitlets import Bool, Dict, Float, Int, Unicode
 
 from .frontend import MODULE_NAME, MODULE_VERSION
 
@@ -88,7 +87,6 @@ class Turtle(DOMWidget):
 
         self.text = ""
         self.font = ("Arial", 8, "normal")
-        self.move = False
         self.align = "left"
 
         self.home()
@@ -448,7 +446,6 @@ class Turtle(DOMWidget):
     def write(
         self,
         arg,
-        move: bool = False,
         align: str = "left",
         font: Tuple[str, int, str] = ("Arial", 8, "normal"),
     ) -> None:
@@ -457,22 +454,18 @@ class Turtle(DOMWidget):
 
         Arguments:
         * arg -- info, which is to be written to the screen
-        * move (optional) -- True/False
         * align (optional) -- one of the strings "left", "center" or right"
         * font (optional) -- a triple (name, size, type)
 
         Write text - the string representation of arg - at the current
         turtle position according to align ("left", "center" or right")
         and with the given font.
-        If move is True, the pen is moved to the bottom-right corner
-        of the text. By default, move is False.
 
         Example (for a Turtle instance named turtle):
-        >>> turtle.write('Home = ', True, align="center")
-        >>> turtle.write((0,0), True)
+        >>> turtle.write('Home = ', align="center")
+        >>> turtle.write((0,0))
         """
         self.text = str(arg)
-        self.move = move
         self.align = align.lower()
         self.font = font
         self._add_action(ActionType.WRITE_TEXT)
@@ -503,7 +496,6 @@ class Turtle(DOMWidget):
         if self.text:
             action["text"] = self.text
             action["font"] = self.font
-            action["move"] = self.move
             action["align"] = self.align
 
         # Swap to instance action variable for sync.

@@ -22,5 +22,4 @@ export interface TurtleAction {
     text?: string;
     font?: FontSpec;
     align?: string;
-    move?: boolean;
 }

@@ -40,8 +40,6 @@ const Turtle: FunctionComponent = () => {
 }
 
 const TurtleQuest: FunctionComponent = () => {
-    const [, setX] = useModelState('x');
-    const [, setY] = useModelState('y');
     const [id] = useModelState('id');
     const [width] = useModelState('width');
     const [height] = useModelState('height');
@@ -165,11 +163,6 @@ const TurtleQuest: FunctionComponent = () => {
         const width = getTextWidth(action.font, action.text);
 
         position = getTextPos(action, width) as Coord;
-
-        if (action.move) {
-            setX(position[0] + width);
-            setY(position[1]);
-        }
 
         return (
             <text
