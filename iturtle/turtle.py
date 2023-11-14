@@ -80,8 +80,6 @@ class Turtle(DOMWidget):
         self.pen = True
         self.pen_color = "black"
         self.pen_size = self.PENSIZE
-        self.ix = 0
-        self.iy = 0
         self.velocity = 6
         self.id = id(self)
         self.action = {}
@@ -95,8 +93,11 @@ class Turtle(DOMWidget):
 
         self.home()
 
-    def turtle_pos(self):
-        return (self.ix + self.width / 2, self.height / 2 - self.iy)
+    def pos(self):
+        return (self.x - self.width / 2, self.height / 2 - self.y)
+
+    def set_turtle_pos(self, x: float, y: float):
+        self.x, self.y = (x + self.width / 2, self.height / 2 - y)
 
     def home(self):
         """
@@ -105,9 +106,7 @@ class Turtle(DOMWidget):
         Example:
         >>> turtle.home()
         """
-        self.ix = 0
-        self.iy = 0
-        self.x, self.y = self.turtle_pos()
+        self.set_turtle_pos(0, 0)
         self.distance = 0
         self.bearing = 0
         self._add_action(ActionType.MOVE_ABSOLUTE)
@@ -186,9 +185,8 @@ class Turtle(DOMWidget):
         self.distance = distance
 
         alpha = radians(self.bearing)
-        self.ix += distance * cos(alpha)
-        self.iy -= distance * sin(alpha)
-        self.x, self.y = self.turtle_pos()
+        x, y = self.pos()
+        self.set_turtle_pos(x + distance * cos(alpha), y - distance * sin(alpha))
         if self.pen:
             self._add_action(ActionType.LINE_ABSOLUTE)
         else:
@@ -230,10 +228,8 @@ class Turtle(DOMWidget):
             x, y = coordinates[0]
         else:
             x, y = coordinates
-        self.distance = sqrt((self.ix - x) ** 2 + (self.iy - y) ** 2)
-        self.ix = x
-        self.iy = y
-        self.x, self.y = self.turtle_pos()
+        self.distance = sqrt((self.pos()[0] - x) ** 2 + (self.pos()[1] - y) ** 2)
+        self.set_turtle_pos(x, y)
         if self.pen:
             self._add_action(ActionType.LINE_ABSOLUTE)
         else:
@@ -245,9 +241,7 @@ class Turtle(DOMWidget):
         Example:
         >>> turtle.teleport(0, 0)
         """
-        self.ix = x
-        self.iy = y
-        self.x, self.y = self.turtle_pos()
+        self.set_turtle_pos(x, y)
         self.distance = 0
         self._add_action(ActionType.MOVE_ABSOLUTE)
 
@@ -361,9 +355,6 @@ class Turtle(DOMWidget):
         """
         self.bearing = bearing
 
-    def pos(self):
-        return (self.ix, self.iy)
-
     @overload
     def towards(self, x: Tuple[float, float]) -> None:
         ...
@@ -385,8 +376,9 @@ class Turtle(DOMWidget):
         else:
             x, y = coordinates
 
-        dx = x - self.ix
-        dy = y - self.iy
+        ix, iy = self.pos()
+        dx = x - ix
+        dy = y - iy
         if dx or dy:
             return degrees(atan2(dx, dy)) - 90
         else:
