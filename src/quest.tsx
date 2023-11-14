@@ -1,6 +1,6 @@
 import { WidgetModel } from '@jupyter-widgets/base';
 import React, { FunctionComponent, useEffect, useState } from 'react';
-import { ActionType, FontSpec, TurtleAction } from './interface';
+import { ActionType, Coord, FontSpec, TurtleAction } from './interface';
 import { useModelState, WidgetModelContext } from './store';
 
 import '../css/widget.css';
@@ -15,8 +15,8 @@ const Turtle: FunctionComponent = () => {
     const [bearing] = useModelState('bearing');
     const [show] = useModelState('show');
 
-    if (show) {
-        return (
+    return (
+        show ?
             <svg x={x - 15} y={y - 15} width="32" height="32" xmlns="http://www.w3.org/2000/svg">
                 <g transform={`rotate(${(bearing + 90) % 360}, 15, 15)`} >
                     <path d="M16 0.248374C13.9097 0.248374 12.2153 1.9429 12.2153 4.03313L12.2153 7.81788C12.2153 9.90811 13.9097 11.6026 16 11.6026 18.0904 11.6026 19.7848 9.90811 19.7848 7.81788L19.7848 4.03313C19.7848 1.9429 18.0903 0.248374 16 0.248374Z" fill="#9DD7F5" />
@@ -34,10 +34,9 @@ const Turtle: FunctionComponent = () => {
                     <path d="M19.6188 12.3061 21.8529 19.1825 16.0037 23.4322 10.1544 19.1825 12.3887 12.3061Z" fill="#FFDA44" /><path d="M19.6188 12.3061 21.8529 19.1825 16.0037 23.4322 16 12.3061Z" fill="#FF9811" />
                 </g>
             </svg>
-        );
-    } else {
-        return <svg />;
-    }
+            :
+            <svg />
+    )
 }
 
 const TurtleQuest: FunctionComponent = () => {
@@ -50,6 +49,8 @@ const TurtleQuest: FunctionComponent = () => {
     const [background] = useModelState('background');
 
     const [actions, setActions] = useState<TurtleAction[]>([]);
+
+    let position: Coord = [0, 0];
 
     useEffect(() => {
         const saved = localStorage.getItem(id.toString());
@@ -66,9 +67,13 @@ const TurtleQuest: FunctionComponent = () => {
             // load these actions during mount with the latest action syncing from the kernel :-)
 
             setActions(actions => {
-                localStorage.setItem(id.toString(), JSON.stringify(actions));
+                if (action.type) {
+                    localStorage.setItem(id.toString(), JSON.stringify(actions));
 
-                return [...actions, action];
+                    return [...actions, action];
+                } else {
+                    return actions;
+                }
             });
         }
     }, [action, id]);
@@ -90,12 +95,10 @@ const TurtleQuest: FunctionComponent = () => {
         return context.measureText(text).width;
     }
 
-    const getTextPos = (action: TurtleAction) => {
+    const getTextPos = (action: TurtleAction, width: number) => {
         if (action.type !== ActionType.WRITE_TEXT) {
             throw new Error('invalid argument');
         }
-
-        const width = getTextWidth(action.font, action.text);
 
         switch (action.align) {
             case 'left':
@@ -103,12 +106,91 @@ const TurtleQuest: FunctionComponent = () => {
             case 'center':
                 return [action.position[0] - width / 2, action.position[1]];
             case 'right':
-            default:
                 return [action.position[0] - width, action.position[1]];
+            default:
+                return [0, 0]
         }
     }
 
-    let position = [0, 0];
+    const moveAbsolute = (action: TurtleAction): JSX.Element => {
+        position = action.position.slice() as Coord;
+
+        return <></>;
+    }
+
+    const moveRelative = (action: TurtleAction): JSX.Element => {
+        return <></>;
+    }
+
+    const lineAbsolute = (action: TurtleAction): JSX.Element => {
+        if (action.pen) {
+            const steps = Math.round(action.distance / (3 * 1.1 ** action.velocity * action.velocity));
+            const duration = Math.round(steps * 10);
+
+            const visual =
+                <line
+                    x1={position[0]}
+                    y1={position[1]}
+                    x2={action.position[0]}
+                    y2={action.position[1]}
+                    strokeLinecap="round"
+                    strokeWidth={1}
+                    stroke={action.color}
+                >
+                    <animate attributeName="stroke-dashoffset" from="1000" to="0" dur={`${duration}ms`} calcMode="linear forwards"></animate>
+                </line>;
+
+            position = action.position.slice() as Coord;
+
+            return visual;
+        } else {
+            return <></>;
+        }
+    }
+
+    const drawDot = (action: TurtleAction): JSX.Element => {
+        return (
+            <circle
+                cx={action.position[0]}
+                cy={action.position[1]}
+                r={action.size / 2}
+                stroke={action.color}
+                strokeWidth={1}
+                fill={action.color}
+            />
+        );
+    }
+
+    const writeText = (action: TurtleAction): JSX.Element => {
+        const width = getTextWidth(action.font, action.text);
+
+        position = getTextPos(action, width) as Coord;
+
+        if (action.move) {
+            setX(position[0] + width);
+            setY(position[1]);
+        }
+
+        return (
+            <text
+                x={position[0]}
+                y={position[1]}
+                font-family={action.font?.[0]}
+                font-size={action.font?.[1]}
+                font-weight={action.font?.[2]}
+            >
+                {action.text}
+            </text>
+        )
+    }
+
+    const getRenderer: Record<ActionType, (action: TurtleAction) => React.JSX.Element> = {
+        [ActionType.MOVE_ABSOLUTE]: moveAbsolute,
+        [ActionType.MOVE_RELATIVE]: moveRelative,
+        [ActionType.LINE_ABSOLUTE]: lineAbsolute,
+        [ActionType.DRAW_DOT]: drawDot,
+        [ActionType.WRITE_TEXT]: writeText,
+    }
 
     return (
         <div className="Widget">
@@ -123,71 +205,10 @@ const TurtleQuest: FunctionComponent = () => {
                 <rect width="100%" height="100%" fill="url(#grid)" />
 
                 {
-                    actions?.map((action, index) => {
-                        switch (action.type) {
-                            case ActionType.MOVE_ABSOLUTE:
-                                position = action.position.slice();
-                                return undefined;
+                    actions?.map((action,) => {
+                        const renderer = getRenderer[action.type];
 
-                            case ActionType.LINE_ABSOLUTE:
-                                if (action.pen) {
-                                    const steps = Math.round(action.distance / (3 * 1.1 ** action.velocity * action.velocity));
-                                    const duration = Math.round(steps * 10);
-
-                                    const visual =
-                                        <line
-                                            x1={position[0]}
-                                            y1={position[1]}
-                                            x2={action.position[0]}
-                                            y2={action.position[1]}
-                                            strokeLinecap="round"
-                                            strokeWidth={1}
-                                            stroke={action.color}
-                                        >
-                                            <animate attributeName="stroke-dashoffset" from="1000" to="0" dur={`${duration}ms`} calcMode="linear forwards"></animate>
-                                        </line>;
-
-                                    position = action.position.slice();
-
-                                    return visual;
-                                }
-                                return undefined;
-
-                            case ActionType.DRAW_DOT:
-                                return (
-                                    <circle
-                                        cx={action.position[0]}
-                                        cy={action.position[1]}
-                                        r={action.size / 2}
-                                        stroke={action.color}
-                                        strokeWidth={1}
-                                        fill={action.color}
-                                    />
-                                );
-
-                            case ActionType.WRITE_TEXT:
-                                position = getTextPos(action)
-
-                                if (action.move) {
-                                    setX(position[0]);
-                                    setY(position[1]);
-                                }
-
-                                return (
-                                    <text
-                                        x={position[0]}
-                                        y={position[1]}
-                                        font-family={action.font?.[0]}
-                                        font-size={action.font?.[1]}
-                                        font-weight={action.font?.[2]}
-                                    >
-                                        {action.text}
-                                    </text>
-                                )
-
-                            default:
-                                return undefined;
-                        }
+                        return renderer(action);
                     })
                 }
 

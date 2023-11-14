@@ -177,7 +177,7 @@ lab frontend. For lab, this is done by the command:
 
 ```
 jupyter labextension develop --overwrite .
-yarn run build
+jlpm run build
 ```
 
 ### How to see your changes
