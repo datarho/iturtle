@@ -175,3 +175,31 @@ def test_turtle_towards():
     assert turtle.y == Turtle.HEIGHT / 2
     assert abs(turtle.pos()[0]) < 1e-5
     assert abs(turtle.pos()[1]) < 1e-5
+
+
+def test_turtle_write():
+    """
+    Check turtle write texts.
+    """
+    turtle = Turtle()
+
+    turtle.write("hello world")
+
+    assert turtle.action["text"] == "hello world"
+    assert turtle.action["align"] == "left"
+    assert turtle.action["font"] == ("Arial", 8, "normal")
+
+    turtle = Turtle()
+
+    turtle.write("hello world", "right")
+
+    assert turtle.action["text"] == "hello world"
+    assert turtle.action["align"] == "right"
+    assert turtle.action["font"] == ("Arial", 8, "normal")
+
+    turtle = Turtle()
+    turtle.write("hello", font=("Courier", 90, "normal"), align="center")
+
+    assert turtle.action["text"] == "hello"
+    assert turtle.action["font"] == ("Courier", 90, "normal")
+    assert turtle.action["align"] == "center"

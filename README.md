@@ -40,9 +40,9 @@ for i in range(36):
 
 Please check the following samples:
 
-* [Introduction](examples/introduction.ipynb)
-* [Star](examples/star.ipynb)
-* [Spiral](examples/spiral.ipynb)
+- [Introduction](examples/introduction.ipynb)
+- [Star](examples/star.ipynb)
+- [Spiral](examples/spiral.ipynb)
 
 Currently Interactive Turtle supports these methods:
 
@@ -98,7 +98,7 @@ Speeds from `1` to `10` enforce increasingly faster animation of line drawing an
 turtle.speed(1)
 ```
 
-### Pen control    
+### Pen control
 
 `penup()` or `pu()`
 
@@ -108,7 +108,7 @@ Pull the pen up – no drawing when moving.
 turtle.penup()
 ```
 
-`pendown()` or `pd()` 
+`pendown()` or `pd()`
 
 Pull the pen down – drawing when moving.
 
@@ -177,7 +177,7 @@ lab frontend. For lab, this is done by the command:
 
 ```
 jupyter labextension develop --overwrite .
-yarn run build
+jlpm run build
 ```
 
 ### How to see your changes
@@ -188,7 +188,7 @@ terminals to watch for changes in the extension's source and automatically rebui
 Watch the source directory in one terminal, automatically rebuilding when needed:
 
 ```bash
-yarn run watch
+jlpm run watch
 ```
 
 Run JupyterLab in another terminal:
