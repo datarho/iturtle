@@ -170,7 +170,7 @@ const TurtleQuest: FunctionComponent = () => {
                 y={position[1]}
                 font-family={action.font?.[0]}
                 font-size={action.font?.[1]}
-                font-weight={action.font?.[2]}
+                font-style={action.font?.[2]}
             >
                 {action.text}
             </text>
