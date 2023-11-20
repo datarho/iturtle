@@ -1,5 +1,6 @@
 import { WidgetModel } from '@jupyter-widgets/base';
-import React, { FunctionComponent, useEffect, useState } from 'react';
+import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
+import { Camera, GridDots } from 'tabler-icons-react';
 import { ActionType, Coord, FontSpec, TurtleAction } from './interface';
 import { useModelState, WidgetModelContext } from './store';
 
@@ -47,6 +48,9 @@ const TurtleQuest: FunctionComponent = () => {
     const [background] = useModelState('background');
 
     const [actions, setActions] = useState<TurtleAction[]>([]);
+    const [grid, setGrid] = useState(true);
+
+    const ref = useRef<SVGSVGElement | null>(null);
 
     let position: Coord = [0, 0];
 
@@ -185,9 +189,37 @@ const TurtleQuest: FunctionComponent = () => {
         [ActionType.WRITE_TEXT]: writeText,
     }
 
+    const takePicture = () => {
+        const source = ref.current?.outerHTML;
+        const file = new Blob([source ?? '<svg></svg>'], { type: 'image/svg+xml' });
+
+        const element = document.createElement('a');
+
+        element.href = URL.createObjectURL(file);
+        element.download = 'turtle.svg';
+
+        const fragment = document.createDocumentFragment();
+        fragment.appendChild(element);
+
+        element.click();
+    }
+
+    const toggleGrid = () => {
+        setGrid((grid) => !grid);
+    }
+
     return (
         <div className="Widget">
-            <svg viewBox={`0 0 ${width + 1} ${height + 1}`} xmlns="http://www.w3.org/2000/svg">
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <div title='Camera' onClick={takePicture} style={{ paddingLeft: '1em' }}>
+                    <Camera size={24} color='grey' />
+                </div>
+                <div title='Grid' onClick={toggleGrid} style={{ paddingLeft: '1em' }}>
+                    <GridDots size={24} color='grey' />
+                </div>
+            </div>
+
+            <svg ref={ref} viewBox={`0 0 ${width + 1} ${height + 1}`} xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
                         <path d="M 0,0 L 20,0 M 0,0 L 0,20" stroke="gray" stroke-width="0.3" />
@@ -195,7 +227,13 @@ const TurtleQuest: FunctionComponent = () => {
                 </defs>
 
                 <rect width="100%" height="100%" fill={`${background}`} />
-                <rect width="100%" height="100%" fill="url(#grid)" />
+
+                {
+                    grid ?
+                        <rect width="100%" height="100%" fill="url(#grid)" />
+                        :
+                        <></>
+                }
 
                 {
                     actions?.map((action,) => {
