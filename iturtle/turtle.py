@@ -89,7 +89,9 @@ class Turtle(DOMWidget):
         self.font = ("Arial", 8, "normal")
         self.align = "left"
 
+        self.penup()
         self.home()
+        self.pendown()
 
     def pos(self):
         return (self.x - self.width / 2, self.height / 2 - self.y)
@@ -107,7 +109,10 @@ class Turtle(DOMWidget):
         self.set_turtle_pos(0, 0)
         self.distance = 0
         self.bearing = 0
-        self._add_action(ActionType.MOVE_ABSOLUTE)
+        if self.pen:
+            self._add_action(ActionType.LINE_ABSOLUTE)
+        else:
+            self._add_action(ActionType.MOVE_ABSOLUTE)
 
     def clear(self):
         """
