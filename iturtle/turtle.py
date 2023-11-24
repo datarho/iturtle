@@ -316,7 +316,10 @@ class Turtle(DOMWidget):
             b = self._clamp(color[2], 0, 255)
             self.pen_color = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
         elif len(color) == 1:
-            self.pen_color = "#{0:02x}{1:02x}{2:02x}".format(*color[0])
+            if type(color[0]) is str:
+                self.pen_color = color
+            else:
+                self.pen_color = "#{0:02x}{1:02x}{2:02x}".format(*color[0])
 
         self._add_action(ActionType.DRAW_DOT)
         self.pen_color = tmp_color
@@ -344,7 +347,10 @@ class Turtle(DOMWidget):
 
             self.pen_color = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
         elif len(color) == 1:
-            self.pen_color = "#{0:02x}{1:02x}{2:02x}".format(*color[0])
+            if type(color[0]) is str:
+                self.pen_color = color
+            else:
+                self.pen_color = "#{0:02x}{1:02x}{2:02x}".format(*color[0])
 
     def heading(self) -> float:
         """
