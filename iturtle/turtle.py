@@ -317,7 +317,7 @@ class Turtle(DOMWidget):
             self.pen_color = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
         elif len(color) == 1:
             if type(color[0]) is str:
-                self.pen_color = color
+                self.pen_color = color[0]
             else:
                 self.pen_color = "#{0:02x}{1:02x}{2:02x}".format(*color[0])
 
@@ -348,7 +348,7 @@ class Turtle(DOMWidget):
             self.pen_color = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
         elif len(color) == 1:
             if type(color[0]) is str:
-                self.pen_color = color
+                self.pen_color = color[0]
             else:
                 self.pen_color = "#{0:02x}{1:02x}{2:02x}".format(*color[0])
 
