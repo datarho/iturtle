@@ -146,7 +146,7 @@ def test_turtle_dot():
 
     turtle.dot(50, (255, 0, 0))
 
-    assert turtle.action["color"] == (255, 0, 0)
+    assert turtle.action["color"] == "#ff0000"
     assert turtle.action["size"] == 50
 
 
