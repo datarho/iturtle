@@ -163,6 +163,14 @@ const TurtleQuest: FunctionComponent = () => {
         );
     }
 
+    const circle = (action: TurtleAction): JSX.Element => {
+        const visual = (
+            <path d={`M ${position[0]},${position[1]} A ${action.radius},${action.radius}, 0 0 ${action.clockwise} ${action.position[0]},${action.position[1]}`} stroke={action.color} strokeWidth={1} fill="transparent" />
+        );
+        position = action.position.slice() as Coord;
+        return visual
+    }
+
     const writeText = (action: TurtleAction): JSX.Element => {
         const width = getTextWidth(action.font, action.text);
 
@@ -187,6 +195,7 @@ const TurtleQuest: FunctionComponent = () => {
         [ActionType.LINE_ABSOLUTE]: lineAbsolute,
         [ActionType.DRAW_DOT]: drawDot,
         [ActionType.WRITE_TEXT]: writeText,
+        [ActionType.CIRCLE]: circle,
     }
 
     const takePicture = () => {

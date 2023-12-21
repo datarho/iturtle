@@ -8,6 +8,7 @@ export enum ActionType {
     LINE_ABSOLUTE = 'L',
     DRAW_DOT = 'D',
     WRITE_TEXT = 'W',
+    CIRCLE = 'C',
 }
 
 export interface TurtleAction {
@@ -19,6 +20,8 @@ export interface TurtleAction {
     velocity: number;
     distance: number;
     size: number;
+    radius: number;
+    clockwise: number;
     text?: string;
     font?: FontSpec;
     align?: string;

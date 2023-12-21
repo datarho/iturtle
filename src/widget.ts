@@ -20,8 +20,6 @@ export interface WidgetModelState {
     height: number;
     x: number;
     y: number;
-    distance: number;
-    velocity: number;
     background: string;
     size: number;
     bearing: number;
