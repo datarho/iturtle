@@ -1,90 +1,38 @@
-"""
-Interactive turtle widget module
-"""
-from enum import Enum
+from .screen import Screen, ActionType
+
 from math import atan2, cos, degrees, radians, sin, sqrt
-from time import sleep
-from typing import Tuple, overload
 
-from IPython.display import clear_output, display
-from ipywidgets import DOMWidget
-from traitlets import Bool, Dict, Float, Int, Unicode
+from typing import Optional, Tuple, overload
 
-from .frontend import MODULE_NAME, MODULE_VERSION
+import json
 
 
-class ActionType(str, Enum):
-    """
-    Enum for action types that follows SVG path commands.
-    """
-
-    MOVE_ABSOLUTE = "M"
-    MOVE_RELATIVE = "m"
-    LINE_ABSOLUTE = "L"
-    DRAW_DOT = "D"
-    WRITE_TEXT = "W"
-    CIRCLE = "C"
-
-
-class Turtle(DOMWidget):
-    """
-    Interactive turtle widget
-    """
-
-    # Define constants here.
-
-    WIDTH = 800
-    HEIGHT = 500
+class Turtle:
     PENSIZE = 1
-    DELAY = 2
 
-    # Jupyter model variables.
+    def to_json(self):
+        return json.dumps(
+            {"x": self.x, "y": self.y, "bearing": self.bearing, "show": self.show}
+        )
 
-    _model_name = Unicode("TurtleModel").tag(sync=True)
-    _model_module = Unicode(MODULE_NAME).tag(sync=True)
-    _model_module_version = Unicode(MODULE_VERSION).tag(sync=True)
-    _view_name = Unicode("TurtleView").tag(sync=True)
-    _view_module = Unicode(MODULE_NAME).tag(sync=True)
-    _view_module_version = Unicode(MODULE_VERSION).tag(sync=True)
+    def __init__(self, screen: Optional[Screen] = None):
+        if screen is None:
+            self.screen = Screen()
+        else:
+            self.screen = screen
+        self.id = id(self)
 
-    # Widget state goes here.
-
-    width = Int(WIDTH).tag(sync=True)
-    height = Int(HEIGHT).tag(sync=True)
-    x = Float(WIDTH / 2).tag(sync=True)
-    y = Float(HEIGHT / 2).tag(sync=True)
-    id = Int(0).tag(sync=True)
-    bearing = Float(0).tag(sync=True)
-    background = Unicode("white").tag(sync=True)
-    show = Bool(True).tag(sync=True)
-
-    # We will only sync delta action so that frontend will handle the whole states.
-
-    action = Dict().tag(sync=True)
-
-    def __init__(self):
-        """
-        Create a Turtle.
-
-        Example:
-        >>> t = Turtle()
-        """
-        super(Turtle, self).__init__()
-
-        display(self)
-
-        # Move related variables.
-
+        self.x = self.screen.WIDTH / 2
+        self.y = self.screen.HEIGHT / 2
+        self.bearing = 0
+        self.show = True
+        self.screen.turtles[self.id] = self.to_json()
         self.pen = True
         self.pen_color = "black"
         self.pen_size = self.PENSIZE
-        self.velocity = 6
-        self.id = id(self)
-        self.action = {}
         self.distance = 0
         self.radius = 0
         self.clockwise = 1
-        self.velocity = 3  # avoid duplicate to speed method
 
         # Text related variable.
 
@@ -97,10 +45,11 @@ class Turtle(DOMWidget):
         self.pendown()
 
     def pos(self):
-        return (self.x - self.width / 2, self.height / 2 - self.y)
+        return (self.x - self.screen.width / 2, self.screen.height / 2 - self.y)
 
     def set_turtle_pos(self, x: float, y: float):
-        self.x, self.y = (x + self.width / 2, self.height / 2 - y)
+        self.x, self.y = (x + self.screen.width / 2, self.screen.height / 2 - y)
+        self.screen.turtles[self.id] = self.to_json()
 
     def home(self):
         """
@@ -113,11 +62,12 @@ class Turtle(DOMWidget):
         self.distance = 0
         self.bearing = 0
         if self.pen:
-            self._add_action(ActionType.LINE_ABSOLUTE)
+            self.screen._add_action(self, ActionType.LINE_ABSOLUTE)
         else:
-            self._add_action(ActionType.MOVE_ABSOLUTE)
+            self.screen._add_action(self, ActionType.MOVE_ABSOLUTE)
+        self.screen.turtles[self.id] = self.to_json()
 
-    def clear(self):
+    def clear(self):  ##??????????????
         """
         This function is used to delete the turtle’s drawings from the screen. Do not move state
         and position of the turtle as well as drawings of other turtles are not affected.
@@ -170,7 +120,7 @@ class Turtle(DOMWidget):
         Example:
         >>> turtle.speed(10) # Full speed
         """
-        self.velocity = self._clamp(velocity, 1, 10)
+        self.screen.velocity = self._clamp(velocity, 1, 10)
 
     def fd(self, distance: float):
         """
@@ -194,9 +144,9 @@ class Turtle(DOMWidget):
         ix, iy = self.pos()
         self.set_turtle_pos(ix + distance * cos(alpha), iy - distance * sin(alpha))
         if self.pen:
-            self._add_action(ActionType.LINE_ABSOLUTE)
+            self.screen._add_action(self, ActionType.LINE_ABSOLUTE)
         else:
-            self._add_action(ActionType.MOVE_ABSOLUTE)
+            self.screen._add_action(self, ActionType.MOVE_ABSOLUTE)
 
     def bk(self, distance: float):
         """
@@ -238,9 +188,9 @@ class Turtle(DOMWidget):
         self.distance = sqrt((ix - x) ** 2 + (iy - y) ** 2)
         self.set_turtle_pos(x, y)
         if self.pen:
-            self._add_action(ActionType.LINE_ABSOLUTE)
+            self.screen._add_action(self, ActionType.LINE_ABSOLUTE)
         else:
-            self._add_action(ActionType.MOVE_ABSOLUTE)
+            self.screen._add_action(self, ActionType.MOVE_ABSOLUTE)
 
     def teleport(self, x: float, y: float):
         """Teleport the Turtle to (x,y).
@@ -250,7 +200,7 @@ class Turtle(DOMWidget):
         """
         self.set_turtle_pos(x, y)
         self.distance = 0
-        self._add_action(ActionType.MOVE_ABSOLUTE)
+        self.screen._add_action(self, ActionType.MOVE_ABSOLUTE)
 
     def rt(self, angle: float):
         """
@@ -269,6 +219,7 @@ class Turtle(DOMWidget):
         >>> turtle.right(90)
         """
         self.bearing = self.bearing + angle
+        self.screen.turtles[self.id] = self.to_json()
 
     def lt(self, angle: float):
         """Turn the Turtle num degrees to the left.
@@ -285,6 +236,7 @@ class Turtle(DOMWidget):
         >>> turtle.left(90)
         """
         self.bearing = self.bearing - angle
+        self.screen.turtles[self.id] = self.to_json()
 
     @overload
     def dot(self) -> None:
@@ -325,7 +277,7 @@ class Turtle(DOMWidget):
             else:
                 self.pen_color = "#{0:02x}{1:02x}{2:02x}".format(*color[0])
 
-        self._add_action(ActionType.DRAW_DOT)
+        self.screen._add_action(self, ActionType.DRAW_DOT)
         self.pen_color = tmp_color
         self.pen_size = tmp_size
 
@@ -367,6 +319,7 @@ class Turtle(DOMWidget):
         Set the turtle's current heading.
         """
         self.bearing = bearing
+        self.screen.turtles[self.id] = self.to_json()
 
     def __circle(self, radius: float, extent: float):
         ix, iy = self.pos()
@@ -386,7 +339,7 @@ class Turtle(DOMWidget):
         dx, dy = dx + self.radius * cos(alpha), dy - self.radius * sin(alpha)
         self.set_turtle_pos(dx, dy)
 
-        self._add_action(ActionType.CIRCLE)
+        self.screen._add_action(self, ActionType.CIRCLE)
 
     def circle(self, radius: float, extent=None):
         if extent is None:
@@ -445,6 +398,7 @@ class Turtle(DOMWidget):
         >>> turtle.hideturtle()
         """
         self.show = False
+        self.screen.turtles[self.id] = self.to_json()
 
     def st(self):
         """
@@ -462,6 +416,7 @@ class Turtle(DOMWidget):
         >>> turtle.showturtle()
         """
         self.show = True
+        self.screen.turtles[self.id] = self.to_json()
 
     @overload
     def bgcolor(self, color: str) -> None:
@@ -483,9 +438,9 @@ class Turtle(DOMWidget):
             g = self._clamp(args[1], 0, 255)
             b = self._clamp(args[2], 0, 255)
 
-            self.background = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
+            self.screen.background = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
         elif len(args) == 1:
-            self.background = args[0]
+            self.screen.background = args[0]
 
     def write(
         self,
@@ -512,58 +467,11 @@ class Turtle(DOMWidget):
         self.text = str(arg)
         self.align = align.lower()
         self.font = font
-        self._add_action(ActionType.WRITE_TEXT)
+        self.screen._add_action(self, ActionType.WRITE_TEXT)
         self.text = None
 
     def save(self) -> None:
-        clear_output()
-        display(self)
+        self.screen.save()
 
     def _clamp(self, num: int, low: int, high: int) -> int:
         return max(low, min(num, high))
-
-    def _add_action(self, action_type: ActionType):
-        # Build basic action properties
-
-        action = dict(
-            type=action_type,
-            pen=self.pen,
-            color=self.pen_color,
-            distance=self.distance,
-            position=(self.x, self.y),
-            velocity=self.velocity,
-            radius=self.radius,
-            clockwise=self.clockwise,
-            size=self.pen_size,
-        )
-
-        # Build optional action properties.
-
-        if self.text:
-            action["text"] = self.text
-            action["font"] = self.font
-            action["align"] = self.align
-
-        # Swap to instance action variable for sync.
-
-        self.action = action
-
-        self._run()
-
-    def _run(self):
-        # By default the motion of a turtle is broken up into a number of individual steps determined by:
-        #   steps = int(distance / (3 * 1.1**speed * speed))
-        # At the default speed (3 or 'slow'), a 100px line would be drawn in 8 steps. At the slowest speed
-        # (1 or 'slowest'), 30 steps. At a fast speed (10 or 'fast'), 1 step.
-
-        steps = max(
-            abs(self.distance)
-            * self.DELAY
-            / (3 * 1.1**self.velocity * self.velocity),
-            1,
-        )
-
-        # Each step incurs a screen update delay of 100ms by default. We should not shorten the delay as
-        # websocket won't be able to process all the messages in a short time.
-
-        sleep(steps * 0.05)
