@@ -229,6 +229,7 @@ class Turtle:
         >>> turtle.right(90)
         """
         self.bearing = self.bearing + angle
+        self.distance = 0
         self._update_state()
 
     def lt(self, angle: float):
@@ -246,6 +247,7 @@ class Turtle:
         >>> turtle.left(90)
         """
         self.bearing = self.bearing - angle
+        self.distance = 0
         self._update_state()
 
     @overload
@@ -348,7 +350,7 @@ class Turtle:
         alpha = alpha - radians(180) + radians(extent)
         dx, dy = dx + self.radius * cos(alpha), dy - self.radius * sin(alpha)
         self.set_turtle_pos(dx, dy)
-
+        self.distance = self.radius * abs(extent)
         self.screen._add_action(self, ActionType.CIRCLE)
 
     def circle(self, radius: float, extent=None):
@@ -477,6 +479,7 @@ class Turtle:
         self.text = str(arg)
         self.align = align.lower()
         self.font = font
+        self.distance = 0
         self.screen._add_action(self, ActionType.WRITE_TEXT)
         self.text = None
 
@@ -488,6 +491,7 @@ class Turtle:
         * sound -- the url of the sound file
         """
         self.media = sound
+        self.distance = 0
         self.screen._add_action(self, ActionType.SOUND)
         self.media = None
 
