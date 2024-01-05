@@ -203,3 +203,16 @@ def test_turtle_write():
     assert turtle.action["text"] == "hello"
     assert turtle.action["font"] == ("Courier", 90, "normal")
     assert turtle.action["align"] == "center"
+
+
+def test_turtle_circle():
+    """
+    Check turtle circle.
+    """
+    turtle = Turtle()
+    turtle.circle(120, 180)
+    turtle.circle(10)
+    turtle.forward(100)
+    assert abs(turtle.pos()[0] + 100) < 1e-5
+    assert abs(turtle.pos()[1] - 240) < 1e-5
+    assert abs(turtle.heading() + 540) < 1e-5

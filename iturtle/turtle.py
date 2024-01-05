@@ -23,6 +23,7 @@ class ActionType(str, Enum):
     LINE_ABSOLUTE = "L"
     DRAW_DOT = "D"
     WRITE_TEXT = "W"
+    CIRCLE = "C"
 
 
 class Turtle(DOMWidget):
@@ -54,8 +55,6 @@ class Turtle(DOMWidget):
     y = Float(HEIGHT / 2).tag(sync=True)
     id = Int(0).tag(sync=True)
     bearing = Float(0).tag(sync=True)
-    distance = Float(0).tag(sync=True)
-    velocity = Int(3).tag(sync=True)  # avoid duplicate to speed method
     background = Unicode("white").tag(sync=True)
     show = Bool(True).tag(sync=True)
 
@@ -82,6 +81,10 @@ class Turtle(DOMWidget):
         self.velocity = 6
         self.id = id(self)
         self.action = {}
+        self.distance = 0
+        self.radius = 0
+        self.clockwise = 1
+        self.velocity = 3  # avoid duplicate to speed method
 
         # Text related variable.
 
@@ -188,8 +191,8 @@ class Turtle(DOMWidget):
         self.distance = distance
 
         alpha = radians(self.bearing)
-        x, y = self.pos()
-        self.set_turtle_pos(x + distance * cos(alpha), y - distance * sin(alpha))
+        ix, iy = self.pos()
+        self.set_turtle_pos(ix + distance * cos(alpha), iy - distance * sin(alpha))
         if self.pen:
             self._add_action(ActionType.LINE_ABSOLUTE)
         else:
@@ -231,7 +234,8 @@ class Turtle(DOMWidget):
             x, y = coordinates[0]
         else:
             x, y = coordinates
-        self.distance = sqrt((self.pos()[0] - x) ** 2 + (self.pos()[1] - y) ** 2)
+        ix, iy = self.pos()
+        self.distance = sqrt((ix - x) ** 2 + (iy - y) ** 2)
         self.set_turtle_pos(x, y)
         if self.pen:
             self._add_action(ActionType.LINE_ABSOLUTE)
@@ -363,6 +367,35 @@ class Turtle(DOMWidget):
         Set the turtle's current heading.
         """
         self.bearing = bearing
+
+    def __circle(self, radius: float, extent: float):
+        ix, iy = self.pos()
+        if radius > 0:
+            alpha = radians(self.bearing - 90)
+            extent = -abs(extent)
+            self.clockwise = 0
+        else:
+            alpha = radians(self.bearing + 90)
+            extent = +abs(extent)
+            self.clockwise = 1
+        self.bearing = self.bearing + extent
+
+        self.radius = abs(radius)
+        dx, dy = ix + self.radius * cos(alpha), iy - self.radius * sin(alpha)
+        alpha = alpha - radians(180) + radians(extent)
+        dx, dy = dx + self.radius * cos(alpha), dy - self.radius * sin(alpha)
+        self.set_turtle_pos(dx, dy)
+
+        self._add_action(ActionType.CIRCLE)
+
+    def circle(self, radius: float, extent=None):
+        if extent is None:
+            extent = 360
+        while extent >= 180:
+            self.__circle(radius, 180)
+            extent -= 180
+        if extent > 0:
+            self.__circle(radius, extent)
 
     @overload
     def towards(self, x: Tuple[float, float]) -> None:
@@ -499,6 +532,8 @@ class Turtle(DOMWidget):
             distance=self.distance,
             position=(self.x, self.y),
             velocity=self.velocity,
+            radius=self.radius,
+            clockwise=self.clockwise,
             size=self.pen_size,
         )
 
