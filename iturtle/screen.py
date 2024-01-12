@@ -84,7 +84,7 @@ class Screen(DOMWidget):
         # Build basic action properties
 
         action = dict(
-            id=t.id,
+            id=str(t.id),
             type=action_type,
             pen=t.pen,
             color=t.pen_color,

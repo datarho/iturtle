@@ -28,7 +28,7 @@ export interface WidgetModelState {
     background: string;
     size: number;
     bearing: number;
-    turtles: Map<number, TurtleState>;
+    turtles: Record<string, TurtleState>;
     action: TurtleAction;
     show: boolean;
 }

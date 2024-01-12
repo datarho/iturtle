@@ -12,6 +12,7 @@ export enum ActionType {
 }
 
 export interface TurtleAction {
+    id: string;             // turtle id
     type: ActionType;
     pen: number;
     color: string;

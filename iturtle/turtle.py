@@ -1,10 +1,7 @@
-from .screen import Screen, ActionType
-
 from math import atan2, cos, degrees, radians, sin, sqrt
-
 from typing import Optional, Tuple, overload
 
-import json
+from .screen import ActionType, Screen
 
 
 class Turtle:
@@ -41,9 +38,14 @@ class Turtle:
         self.pendown()
 
     def _update_state(self):
+        """
+        Update turtle state in the screen.
+
+        Here we convert object id to string to be compliant with JSON spec.
+        """
         self.screen.turtles = {
             **self.screen.turtles,
-            self.id: {
+            str(self.id): {
                 "x": self.x,
                 "y": self.y,
                 "bearing": self.bearing,
