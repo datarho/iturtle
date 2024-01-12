@@ -10,11 +10,6 @@ import json
 class Turtle:
     PENSIZE = 1
 
-    def to_json(self):
-        return json.dumps(
-            {"x": self.x, "y": self.y, "bearing": self.bearing, "show": self.show}
-        )
-
     def __init__(self, screen: Optional[Screen] = None):
         if screen is None:
             self.screen = Screen()
@@ -26,7 +21,6 @@ class Turtle:
         self.y = self.screen.HEIGHT / 2
         self.bearing = 0
         self.show = True
-        self.screen.turtles[self.id] = self.to_json()
         self.pen = True
         self.pen_color = "black"
         self.pen_size = self.PENSIZE
@@ -40,16 +34,29 @@ class Turtle:
         self.font = ("Arial", 8, "normal")
         self.align = "left"
 
+        self._update_state()
+
         self.penup()
         self.home()
         self.pendown()
+
+    def _update_state(self):
+        self.screen.turtles = {
+            **self.screen.turtles,
+            self.id: {
+                "x": self.x,
+                "y": self.y,
+                "bearing": self.bearing,
+                "show": self.show,
+            },
+        }
 
     def pos(self):
         return (self.x - self.screen.width / 2, self.screen.height / 2 - self.y)
 
     def set_turtle_pos(self, x: float, y: float):
         self.x, self.y = (x + self.screen.width / 2, self.screen.height / 2 - y)
-        self.screen.turtles[self.id] = self.to_json()
+        self._update_state()
 
     def home(self):
         """
@@ -65,7 +72,7 @@ class Turtle:
             self.screen._add_action(self, ActionType.LINE_ABSOLUTE)
         else:
             self.screen._add_action(self, ActionType.MOVE_ABSOLUTE)
-        self.screen.turtles[self.id] = self.to_json()
+        self._update_state()
 
     def clear(self):  ##??????????????
         """
@@ -219,7 +226,7 @@ class Turtle:
         >>> turtle.right(90)
         """
         self.bearing = self.bearing + angle
-        self.screen.turtles[self.id] = self.to_json()
+        self._update_state()
 
     def lt(self, angle: float):
         """Turn the Turtle num degrees to the left.
@@ -236,7 +243,7 @@ class Turtle:
         >>> turtle.left(90)
         """
         self.bearing = self.bearing - angle
-        self.screen.turtles[self.id] = self.to_json()
+        self._update_state()
 
     @overload
     def dot(self) -> None:
@@ -319,7 +326,7 @@ class Turtle:
         Set the turtle's current heading.
         """
         self.bearing = bearing
-        self.screen.turtles[self.id] = self.to_json()
+        self._update_state()
 
     def __circle(self, radius: float, extent: float):
         ix, iy = self.pos()
@@ -398,7 +405,7 @@ class Turtle:
         >>> turtle.hideturtle()
         """
         self.show = False
-        self.screen.turtles[self.id] = self.to_json()
+        self._update_state()
 
     def st(self):
         """
@@ -416,7 +423,7 @@ class Turtle:
         >>> turtle.showturtle()
         """
         self.show = True
-        self.screen.turtles[self.id] = self.to_json()
+        self._update_state()
 
     @overload
     def bgcolor(self, color: str) -> None:

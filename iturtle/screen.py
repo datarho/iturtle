@@ -52,8 +52,6 @@ class Screen(DOMWidget):
     background = Unicode("white").tag(sync=True)
     id = Int(0).tag(sync=True)
 
-    x = Float(WIDTH / 2).tag(sync=True)
-    y = Float(HEIGHT / 2).tag(sync=True)
     bearing = Float(0).tag(sync=True)
     show = Bool(True).tag(sync=True)
 
@@ -75,6 +73,8 @@ class Screen(DOMWidget):
         display(self)
         self.id = id(self)
         self.velocity = 3  # avoid duplicate to speed method
+
+        self.turtles = dict()
 
     def save(self) -> None:
         clear_output()
