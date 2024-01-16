@@ -23,6 +23,7 @@ class ActionType(str, Enum):
     DRAW_DOT = "D"
     WRITE_TEXT = "W"
     CIRCLE = "C"
+    SOUND = "S"
 
 
 class Screen(DOMWidget):
@@ -80,33 +81,34 @@ class Screen(DOMWidget):
         clear_output()
         display(self)
 
-    def _add_action(self, t, action_type: ActionType):
+    def _add_action(self, turtle, action_type: ActionType):
         # Build basic action properties
 
         action = dict(
-            id=str(t.id),
+            id=str(turtle.id),
             type=action_type,
-            pen=t.pen,
-            color=t.pen_color,
-            distance=t.distance,
-            position=(t.x, t.y),
+            media=turtle.media,
+            pen=turtle.pen,
+            color=turtle.pen_color,
+            distance=turtle.distance,
+            position=(turtle.x, turtle.y),
             velocity=self.velocity,
-            radius=t.radius,
-            clockwise=t.clockwise,
-            size=t.pen_size,
+            radius=turtle.radius,
+            clockwise=turtle.clockwise,
+            size=turtle.pen_size,
         )
 
         # Build optional action properties.
 
-        if t.text:
-            action["text"] = t.text
-            action["font"] = t.font
-            action["align"] = t.align
+        if turtle.text:
+            action["text"] = turtle.text
+            action["font"] = turtle.font
+            action["align"] = turtle.align
 
         # Swap to instance action variable for sync.
         self.action = action
 
-        self._run(t.distance)
+        self._run(turtle.distance)
 
     def _run(self, distance):
         # By default the motion of a turtle is broken up into a number of individual steps determined by:

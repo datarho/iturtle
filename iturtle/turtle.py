@@ -24,6 +24,7 @@ class Turtle:
         self.distance = 0
         self.radius = 0
         self.clockwise = 1
+        self.media = None
 
         # Text related variable.
 
@@ -478,6 +479,17 @@ class Turtle:
         self.font = font
         self.screen._add_action(self, ActionType.WRITE_TEXT)
         self.text = None
+
+    def play(self, sound) -> None:
+        """
+        Play sound effect which could be mp3 or ogg file.
+
+        Arguments:
+        * sound -- the url of the sound file
+        """
+        self.media = sound
+        self.screen._add_action(self, ActionType.SOUND)
+        self.media = None
 
     def save(self) -> None:
         self.screen.save()

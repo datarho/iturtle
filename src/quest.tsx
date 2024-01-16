@@ -70,17 +70,26 @@ const Screen: FunctionComponent = () => {
             // there is a new one. However, we'll need to persist existing actions before the change, as we'll
             // load these actions during mount with the latest action syncing from the kernel :-)
 
-            setActions(actions => {
-                if (action.type) {
-                    localStorage.setItem(id.toString(), JSON.stringify(actions));
+            if (Object.keys(action).length === 0) {
+                return;
+            }
 
-                    return [...actions, action];
-                } else {
-                    return actions;
+            setActions(actions => {
+                switch (action.type) {
+                    case ActionType.SOUND:
+                        playSound(action);
+
+                        return actions;
+
+                    default:
+                        localStorage.setItem(id.toString(), JSON.stringify(actions));
+
+                        return [...actions, action];
                 }
             });
         }
     }, [action, id]);
+
 
     const getTextWidth = (font?: FontSpec, text?: string) => {
         if (!font || !text) {
@@ -118,6 +127,16 @@ const Screen: FunctionComponent = () => {
 
     const moveAbsolute = (action: TurtleAction): JSX.Element => {
         positions.current[action.id] = action.position.slice() as Coord;
+
+        return <></>;
+    }
+
+    const playSound = (action: TurtleAction): JSX.Element => {
+        const audio = new Audio(action.media);
+        audio.autoplay = true;
+        audio.addEventListener('ended', () => {
+            audio.src = '';
+        });
 
         return <></>;
     }
@@ -166,7 +185,7 @@ const Screen: FunctionComponent = () => {
         );
     }
 
-    const circle = (action: TurtleAction): JSX.Element => {
+    const drawCircle = (action: TurtleAction): JSX.Element => {
         const position = positions.current[action.id] ?? [width / 2, height / 2];
 
         const visual = (
@@ -207,7 +226,8 @@ const Screen: FunctionComponent = () => {
         [ActionType.LINE_ABSOLUTE]: lineAbsolute,
         [ActionType.DRAW_DOT]: drawDot,
         [ActionType.WRITE_TEXT]: writeText,
-        [ActionType.CIRCLE]: circle,
+        [ActionType.CIRCLE]: drawCircle,
+        [ActionType.SOUND]: playSound,
     }
 
     const takePicture = () => {
