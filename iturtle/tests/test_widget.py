@@ -133,21 +133,21 @@ def test_turtle_dot():
 
     turtle.dot()
 
-    assert turtle.screen.action["size"] == 5
+    assert turtle.screen.action["radius"] == 2.5
 
     turtle.dot(50)
 
-    assert turtle.screen.action["size"] == 50
+    assert turtle.screen.action["radius"] == 25
 
     turtle.dot(50, "blue")
 
     assert turtle.screen.action["color"] == "blue"
-    assert turtle.screen.action["size"] == 50
+    assert turtle.screen.action["radius"] == 25
 
     turtle.dot(50, (255, 0, 0))
 
     assert turtle.screen.action["color"] == "#ff0000"
-    assert turtle.screen.action["size"] == 50
+    assert turtle.screen.action["radius"] == 25
 
 
 def test_turtle_towards():

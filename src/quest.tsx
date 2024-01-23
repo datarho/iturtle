@@ -158,7 +158,7 @@ const Screen: FunctionComponent = () => {
                     x2={action.position[0]}
                     y2={action.position[1]}
                     strokeLinecap='round'
-                    strokeWidth={1}
+                    strokeWidth={action.size}
                     stroke={action.color}
                 >
                     <animate attributeName='stroke-dashoffset' from='1000' to='0' dur={`${duration}ms`} calcMode='linear forwards'></animate>
@@ -177,7 +177,7 @@ const Screen: FunctionComponent = () => {
             <circle
                 cx={action.position[0]}
                 cy={action.position[1]}
-                r={action.size / 2}
+                r={action.radius}
                 stroke={action.color}
                 strokeWidth={1}
                 fill={action.color}

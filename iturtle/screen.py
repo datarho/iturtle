@@ -90,7 +90,7 @@ class Screen(DOMWidget):
             media=turtle.media,
             pen=turtle.pen,
             color=turtle.pen_color,
-            distance=turtle.distance,
+            distance=turtle._distance,
             position=(turtle.x, turtle.y),
             velocity=self.velocity,
             radius=turtle.radius,
@@ -108,7 +108,7 @@ class Screen(DOMWidget):
         # Swap to instance action variable for sync.
         self.action = action
 
-        self._run(turtle.distance)
+        self._run(turtle._distance)
 
     def _run(self, distance):
         # By default the motion of a turtle is broken up into a number of individual steps determined by:

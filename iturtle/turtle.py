@@ -5,8 +5,6 @@ from .screen import ActionType, Screen
 
 
 class Turtle:
-    PENSIZE = 1
-
     def __init__(self, screen: Optional[Screen] = None):
         if screen is None:
             self.screen = Screen()
@@ -20,8 +18,8 @@ class Turtle:
         self.show = True
         self.pen = True
         self.pen_color = "black"
-        self.pen_size = self.PENSIZE
-        self.distance = 0
+        self.pen_size = 1
+        self._distance = 0
         self.radius = 0
         self.clockwise = 1
         self.media = None
@@ -69,7 +67,7 @@ class Turtle:
         >>> turtle.home()
         """
         self.set_turtle_pos(0, 0)
-        self.distance = 0
+        self._distance = 0
         self.bearing = 0
         if self.pen:
             self.screen._add_action(self, ActionType.LINE_ABSOLUTE)
@@ -148,7 +146,7 @@ class Turtle:
         Example:
         >>> turtle.forward(100)
         """
-        self.distance = distance
+        self._distance = distance
 
         alpha = radians(self.bearing)
         ix, iy = self.pos()
@@ -194,8 +192,7 @@ class Turtle:
             x, y = coordinates[0]
         else:
             x, y = coordinates
-        ix, iy = self.pos()
-        self.distance = sqrt((ix - x) ** 2 + (iy - y) ** 2)
+        self._distance = self.distance(x, y)
         self.set_turtle_pos(x, y)
         if self.pen:
             self.screen._add_action(self, ActionType.LINE_ABSOLUTE)
@@ -209,7 +206,7 @@ class Turtle:
         >>> turtle.teleport(0, 0)
         """
         self.set_turtle_pos(x, y)
-        self.distance = 0
+        self._distance = 0
         self.screen._add_action(self, ActionType.MOVE_ABSOLUTE)
 
     def rt(self, angle: float):
@@ -229,7 +226,7 @@ class Turtle:
         >>> turtle.right(90)
         """
         self.bearing = self.bearing + angle
-        self.distance = 0
+        self._distance = 0
         self._update_state()
 
     def lt(self, angle: float):
@@ -247,7 +244,7 @@ class Turtle:
         >>> turtle.left(90)
         """
         self.bearing = self.bearing - angle
-        self.distance = 0
+        self._distance = 0
         self._update_state()
 
     @overload
@@ -270,14 +267,13 @@ class Turtle:
         >>> turtle.dot(20, "blue")
         >>> turtle.dot(20, (254, 235, 105))
         """
-        self.distance = 0
+        self._distance = 0
 
         tmp_color = self.pen_color
-        tmp_size = self.pen_size
         if size is None:
-            self.pen_size = max(self.PENSIZE + 4, 2 * self.PENSIZE)
+            self.radius = max((self.pen_size + 4) / 2, self.pen_size)
         else:
-            self.pen_size = size
+            self.radius = size / 2
         if len(color) == 3:
             r = self._clamp(color[0], 0, 255)
             g = self._clamp(color[1], 0, 255)
@@ -291,7 +287,6 @@ class Turtle:
 
         self.screen._add_action(self, ActionType.DRAW_DOT)
         self.pen_color = tmp_color
-        self.pen_size = tmp_size
 
     @overload
     def pencolor(self, color: str) -> None:
@@ -350,7 +345,7 @@ class Turtle:
         alpha = alpha - radians(180) + radians(extent)
         dx, dy = dx + self.radius * cos(alpha), dy - self.radius * sin(alpha)
         self.set_turtle_pos(dx, dy)
-        self.distance = self.radius * abs(extent)
+        self._distance = self.radius * radians(abs(extent))
         self.screen._add_action(self, ActionType.CIRCLE)
 
     def circle(self, radius: float, extent=None):
@@ -479,7 +474,7 @@ class Turtle:
         self.text = str(arg)
         self.align = align.lower()
         self.font = font
-        self.distance = 0
+        self._distance = 0
         self.screen._add_action(self, ActionType.WRITE_TEXT)
         self.text = None
 
@@ -491,7 +486,7 @@ class Turtle:
         * sound -- the url of the sound file
         """
         self.media = sound
-        self.distance = 0
+        self._distance = 0
         self.screen._add_action(self, ActionType.SOUND)
         self.media = None
 
@@ -500,3 +495,13 @@ class Turtle:
 
     def _clamp(self, num: int, low: int, high: int) -> int:
         return max(low, min(num, high))
+
+    def pensize(self, width: int = None):
+        if not width:
+            self.pen_size = 1
+        else:
+            self.pen_size = width
+
+    def distance(self, x: float, y: float) -> float:
+        ix, iy = self.pos()
+        return sqrt((ix - x) ** 2 + (iy - y) ** 2)
