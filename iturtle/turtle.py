@@ -121,14 +121,44 @@ class Turtle:
         """
         self.pen = True
 
-    def speed(self, velocity: int):
-        """
-        Change the speed of the turtle (range 1-10) where 1 is slowest and 10 is fastest.
+    @overload
+    def speed(self) -> None: ...
 
+    @overload
+    def speed(self, velocity: str) -> None: ...
+
+    @overload
+    def speed(self, velocity: int) -> None: ...
+
+    def speed(self, velocity=None):
+        """
+        Change the speed of the turtle (range 1-10) where 1 is slowest and 10 is fastest, 0 is fastest too.
+        'fastest' :  0
+        'fast'    :  10
+        'normal'  :  6
+        'slow'    :  3
+        'slowest' :  1
         Example:
         >>> turtle.speed(10) # Full speed
         """
-        self.screen.velocity = self._clamp(velocity, 1, 10)
+        if velocity is None:
+            return self.screen.velocity
+        if type(velocity) is str:
+            if velocity == "fastest":
+                self.screen.velocity = 10
+            elif velocity == "fast":
+                self.screen.velocity = 10
+            elif velocity == "normal":
+                self.screen.velocity = 6
+            elif velocity == "slow":
+                self.screen.velocity = 3
+            elif velocity == "slowest":
+                self.screen.velocity = 1
+        else:
+            if velocity == 0:
+                velocity = 10
+            self.screen.velocity = self._clamp(velocity, 1, 10)
+        return self.screen.velocity
 
     def fd(self, distance: float):
         """
@@ -175,12 +205,10 @@ class Turtle:
         self.forward(-distance)
 
     @overload
-    def goto(self, x: Tuple[float, float]) -> None:
-        ...
+    def goto(self, x: Tuple[float, float]) -> None: ...
 
     @overload
-    def goto(self, x: float, y: float) -> None:
-        ...
+    def goto(self, x: float, y: float) -> None: ...
 
     def goto(self, *coordinates) -> None:
         """Move the Turtle to the (x, y).
@@ -248,16 +276,13 @@ class Turtle:
         self._update_state()
 
     @overload
-    def dot(self) -> None:
-        ...
+    def dot(self) -> None: ...
 
     @overload
-    def dot(self, size: int, color: str) -> None:
-        ...
+    def dot(self, size: int, color: str) -> None: ...
 
     @overload
-    def dot(self, size: int, color: Tuple[int, int, int]) -> None:
-        ...
+    def dot(self, size: int, color: Tuple[int, int, int]) -> None: ...
 
     def dot(self, size: int = None, *color) -> None:
         """Draw a circular dot with diameter size, using color.
@@ -289,12 +314,10 @@ class Turtle:
         self.pen_color = tmp_color
 
     @overload
-    def pencolor(self, color: str) -> None:
-        ...
+    def pencolor(self, color: str) -> None: ...
 
     @overload
-    def pencolor(self, r: int, g: int, b: int) -> None:
-        ...
+    def pencolor(self, r: int, g: int, b: int) -> None: ...
 
     def pencolor(self, *color) -> None:
         """
@@ -358,12 +381,10 @@ class Turtle:
             self.__circle(radius, extent)
 
     @overload
-    def towards(self, x: Tuple[float, float]) -> None:
-        ...
+    def towards(self, x: Tuple[float, float]) -> None: ...
 
     @overload
-    def towards(self, x: float, y: float) -> None:
-        ...
+    def towards(self, x: float, y: float) -> None: ...
 
     def towards(self, *coordinates) -> None:
         """
@@ -426,12 +447,10 @@ class Turtle:
         self._update_state()
 
     @overload
-    def bgcolor(self, color: str) -> None:
-        ...
+    def bgcolor(self, color: str) -> None: ...
 
     @overload
-    def bgcolor(self, r: int, g: int, b: int) -> None:
-        ...
+    def bgcolor(self, r: int, g: int, b: int) -> None: ...
 
     def bgcolor(self, *args) -> None:
         """

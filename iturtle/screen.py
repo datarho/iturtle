@@ -1,6 +1,7 @@
 """
 Interactive turtle widget module
 """
+
 from enum import Enum
 
 from time import sleep
@@ -117,8 +118,7 @@ class Screen(DOMWidget):
         # (1 or 'slowest'), 30 steps. At a fast speed (10 or 'fast'), 1 step.
 
         steps = max(
-            abs(distance) * self.DELAY / (3 * 1.1**self.velocity * self.velocity),
-            1,
+            abs(distance) * self.DELAY / (3 * 1.1**self.velocity * self.velocity), 0.5
         )
 
         # Each step incurs a screen update delay of 100ms by default. We should not shorten the delay as
