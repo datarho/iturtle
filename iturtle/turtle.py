@@ -5,6 +5,8 @@ from .screen import ActionType, Screen
 
 
 class Turtle:
+    MODE = "standard"
+
     def __init__(self, screen: Optional[Screen] = None):
         if screen is None:
             self.screen = Screen()
@@ -180,7 +182,7 @@ class Turtle:
 
         alpha = radians(self.bearing)
         ix, iy = self.pos()
-        self.set_turtle_pos(ix + distance * cos(alpha), iy - distance * sin(alpha))
+        self.set_turtle_pos(ix + distance * cos(alpha), iy + distance * sin(alpha))
         if self.pen:
             self.screen._add_action(self, ActionType.LINE_ABSOLUTE)
         else:
@@ -253,7 +255,7 @@ class Turtle:
         Example:
         >>> turtle.right(90)
         """
-        self.bearing = self.bearing + angle
+        self.bearing = self.bearing - angle
         self._distance = 0
         self._update_state()
 
@@ -271,7 +273,7 @@ class Turtle:
         Example:
         >>> turtle.left(90)
         """
-        self.bearing = self.bearing - angle
+        self.bearing = self.bearing + angle
         self._distance = 0
         self._update_state()
 
@@ -342,6 +344,7 @@ class Turtle:
         """
         Return the turtle's current heading.
         """
+        self.bearing = (self.bearing % 360 + 360) % 360
         return self.bearing
 
     def setheading(self, bearing: float):
@@ -354,14 +357,14 @@ class Turtle:
     def __circle(self, radius: float, extent: float):
         ix, iy = self.pos()
         if radius > 0:
-            alpha = radians(self.bearing - 90)
+            alpha = radians(-self.bearing - 90)
             extent = -abs(extent)
             self.clockwise = 0
         else:
-            alpha = radians(self.bearing + 90)
+            alpha = radians(-self.bearing + 90)
             extent = +abs(extent)
             self.clockwise = 1
-        self.bearing = self.bearing + extent
+        self.bearing = self.bearing - extent
 
         self.radius = abs(radius)
         dx, dy = ix + self.radius * cos(alpha), iy - self.radius * sin(alpha)
@@ -524,3 +527,6 @@ class Turtle:
     def distance(self, x: float, y: float) -> float:
         ix, iy = self.pos()
         return sqrt((ix - x) ** 2 + (iy - y) ** 2)
+
+    def mode(self, mode=None):
+        return Turtle.MODE
