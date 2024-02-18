@@ -25,6 +25,7 @@ class ActionType(str, Enum):
     WRITE_TEXT = "W"
     CIRCLE = "C"
     SOUND = "S"
+    CLEAR = "CLR"
 
 
 class Screen(DOMWidget):

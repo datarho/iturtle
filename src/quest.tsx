@@ -80,10 +80,13 @@ const Screen: FunctionComponent = () => {
                         playSound(action);
 
                         return actions;
+                    case ActionType.CLEAR:
+                        const t = actions.filter((tt) => tt.id != action.id);
+                        localStorage.setItem(id.toString(), JSON.stringify(t));
+                        return t;
 
                     default:
                         localStorage.setItem(id.toString(), JSON.stringify(actions));
-
                         return [...actions, action];
                 }
             });
@@ -220,6 +223,10 @@ const Screen: FunctionComponent = () => {
         )
     }
 
+    const clear = (action: TurtleAction): JSX.Element => {
+        return <></>;
+    }
+
     const getRenderer: Record<ActionType, (action: TurtleAction) => React.JSX.Element> = {
         [ActionType.MOVE_ABSOLUTE]: moveAbsolute,
         [ActionType.MOVE_RELATIVE]: moveRelative,
@@ -228,6 +235,7 @@ const Screen: FunctionComponent = () => {
         [ActionType.WRITE_TEXT]: writeText,
         [ActionType.CIRCLE]: drawCircle,
         [ActionType.SOUND]: playSound,
+        [ActionType.CLEAR]: clear,
     }
 
     const takePicture = () => {

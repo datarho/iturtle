@@ -75,7 +75,7 @@ class Turtle:
             self.screen._add_action(self, ActionType.MOVE_ABSOLUTE)
         self._update_state()
 
-    def clear(self):  ##??????????????
+    def clear(self):
         """
         This function is used to delete the turtle’s drawings from the screen. Do not move state
         and position of the turtle as well as drawings of other turtles are not affected.
@@ -83,7 +83,7 @@ class Turtle:
         Example:
         >>> turtle.clear()
         """
-        self.action = {}
+        self.screen._add_action(self, ActionType.CLEAR)
 
     def pu(self):
         """
