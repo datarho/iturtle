@@ -64,15 +64,15 @@ def test_turtle_right():
     """
     turtle = Turtle()
 
-    assert turtle.bearing == 0
+    assert turtle.heading() == 0
 
     turtle.right(90)
 
-    assert turtle.bearing == 90
+    assert turtle.heading() == 270
 
     turtle.right(360)
 
-    assert turtle.bearing == 450
+    assert turtle.heading() == 270
 
 
 def test_turtle_left():
@@ -81,15 +81,15 @@ def test_turtle_left():
     """
     turtle = Turtle()
 
-    assert turtle.bearing == 0
+    assert turtle.heading() == 0
 
     turtle.left(90)
 
-    assert turtle.bearing == -90
+    assert turtle.heading() == 90
 
     turtle.right(360)
 
-    assert turtle.bearing == 270
+    assert turtle.heading() == 90
 
 
 def test_turtle_goto():
@@ -215,7 +215,7 @@ def test_turtle_circle():
     turtle.forward(100)
     assert abs(turtle.pos()[0] + 100) < 1e-5
     assert abs(turtle.pos()[1] - 240) < 1e-5
-    assert abs(turtle.heading() + 540) < 1e-5
+    assert abs(turtle.heading() - 180) < 1e-5
 
 
 def test_multi_turtles():
