@@ -219,6 +219,9 @@ def test_turtle_circle():
 
 
 def test_multi_turtles():
+    """
+    Check multi-turtles.
+    """
     s = Screen()
 
     A = Turtle(s)
@@ -237,3 +240,21 @@ def test_multi_turtles():
     B.forward(80)
     assert B.x == Screen.WIDTH / 2
     assert B.y == Screen.HEIGHT / 2 + 80
+
+
+def test_logo_mode():
+    """
+    Check logo mode method.
+    """
+    t = Turtle()
+    t.mode("logo")
+    assert t.heading() == 0
+
+    t.left(45)
+    t.fd(100)
+    t.right(90)
+    t.fd(100)
+    assert t.heading() == 45
+
+    t.setheading(300)
+    t.heading() == 300

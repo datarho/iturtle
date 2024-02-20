@@ -119,10 +119,13 @@ class Screen(DOMWidget):
         # (1 or 'slowest'), 30 steps. At a fast speed (10 or 'fast'), 1 step.
 
         steps = max(
-            abs(distance) * self.DELAY / (3 * 1.1**self.velocity * self.velocity), 0.5
+            abs(distance) * self.DELAY / (3 * 1.1**self.velocity * self.velocity), 1
         )
 
         # Each step incurs a screen update delay of 100ms by default. We should not shorten the delay as
         # websocket won't be able to process all the messages in a short time.
 
         sleep(steps * 0.05)
+
+    def delay(self, d: int) -> None:
+        Screen.DELAY = d

@@ -2,6 +2,7 @@ from math import atan2, cos, degrees, radians, sin, sqrt
 from typing import Optional, Tuple, overload
 
 from .screen import ActionType, Screen
+from time import sleep
 
 
 class Turtle:
@@ -17,6 +18,8 @@ class Turtle:
         self.x = self.screen.WIDTH / 2
         self.y = self.screen.HEIGHT / 2
         self.bearing = 0
+        if Turtle.MODE == "logo":
+            self.bearing = 90
         self.show = True
         self.pen = True
         self.pen_color = "black"
@@ -53,6 +56,7 @@ class Turtle:
                 "show": self.show,
             },
         }
+        sleep(0.05 * self.screen.DELAY)
 
     def pos(self):
         return (self.x - self.screen.width / 2, self.screen.height / 2 - self.y)
@@ -123,14 +127,14 @@ class Turtle:
         """
         self.pen = True
 
-    @overload
-    def speed(self) -> None: ...
+    # @overload
+    # def speed(self) -> None: ...
 
-    @overload
-    def speed(self, velocity: str) -> None: ...
+    # @overload
+    # def speed(self, velocity: str) -> None: ...
 
-    @overload
-    def speed(self, velocity: int) -> None: ...
+    # @overload
+    # def speed(self, velocity: int) -> None: ...
 
     def speed(self, velocity=None):
         """
@@ -256,7 +260,6 @@ class Turtle:
         >>> turtle.right(90)
         """
         self.bearing = self.bearing - angle
-        self._distance = 0
         self._update_state()
 
     def lt(self, angle: float):
@@ -274,7 +277,6 @@ class Turtle:
         >>> turtle.left(90)
         """
         self.bearing = self.bearing + angle
-        self._distance = 0
         self._update_state()
 
     @overload
@@ -286,7 +288,7 @@ class Turtle:
     @overload
     def dot(self, size: int, color: Tuple[int, int, int]) -> None: ...
 
-    def dot(self, size: int = None, *color) -> None:
+    def dot(self, size: Optional[int] = None, *color) -> None:
         """Draw a circular dot with diameter size, using color.
 
         Example:
@@ -345,13 +347,19 @@ class Turtle:
         Return the turtle's current heading.
         """
         self.bearing = (self.bearing % 360 + 360) % 360
-        return self.bearing
+        if Turtle.MODE == "logo":
+            return ((90 - self.bearing) % 360 + 360) % 360
+        else:
+            return self.bearing
 
     def setheading(self, bearing: float):
         """
         Set the turtle's current heading.
         """
-        self.bearing = bearing
+        if Turtle.MODE == "logo":
+            self.bearing = ((90 - bearing) % 360 + 360) % 360
+        else:
+            self.bearing = (bearing % 360 + 360) % 360
         self._update_state()
 
     def __circle(self, radius: float, extent: float):
@@ -518,8 +526,8 @@ class Turtle:
     def _clamp(self, num: int, low: int, high: int) -> int:
         return max(low, min(num, high))
 
-    def pensize(self, width: int = None):
-        if not width:
+    def pensize(self, width: Optional[int] = None):
+        if width is None:
             self.pen_size = 1
         else:
             self.pen_size = width
@@ -528,5 +536,14 @@ class Turtle:
         ix, iy = self.pos()
         return sqrt((ix - x) ** 2 + (iy - y) ** 2)
 
-    def mode(self, mode=None):
+    def mode(self, mode: Optional[str] = None) -> str:
+        if mode is None:
+            return Turtle.MODE
+        elif mode == "logo":
+            self.bearing = 90
+            Turtle.MODE = mode
+        elif mode == "standard":
+            self.bearing = 0
+            Turtle.MODE = mode
+        self._update_state()
         return Turtle.MODE

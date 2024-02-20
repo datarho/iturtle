@@ -150,8 +150,7 @@ const Screen: FunctionComponent = () => {
 
     const lineAbsolute = (action: TurtleAction): JSX.Element => {
         if (action.pen) {
-            const steps = Math.round(action.distance / (3 * 1.1 ** action.velocity * action.velocity));
-            const duration = Math.round(steps * 10);
+            const duration = Math.round(action.distance / (3 * 1.1 ** action.velocity * action.velocity) * 10);
             const position = positions.current[action.id] ?? [width / 2, height / 2];
 
             const visual =
