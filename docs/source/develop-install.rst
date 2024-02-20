@@ -6,7 +6,7 @@ Developer install
 To install a developer version of iturtle, you will first need to clone
 the repository::
 
-    git clone https://github.com/datarho.tech/iturtle
+    git clone https://github.com/datarho/iturtle
     cd iturtle
 
 Next, install it with a develop install using pip::
