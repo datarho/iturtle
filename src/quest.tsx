@@ -81,7 +81,7 @@ const Screen: FunctionComponent = () => {
 
                         return actions;
                     case ActionType.CLEAR:
-                        const t = actions.filter((tt) => tt.id != action.id);
+                        const t = actions.filter((tt) => tt.id !== action.id);
                         localStorage.setItem(id.toString(), JSON.stringify(t));
                         return t;
 
