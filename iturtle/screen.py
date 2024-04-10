@@ -122,7 +122,6 @@ class Screen(DOMWidget):
         )
         # Each step incurs a screen update delay of 100ms by default. We should not shorten the delay as
         # websocket won't be able to process all the messages in a short time.
-        print(steps)
         sleep(steps * 0.05)
 
     def delay(self, d: int) -> None:

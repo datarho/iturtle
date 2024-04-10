@@ -167,6 +167,7 @@ def test_turtle_towards():
 
     turtle = Turtle()
 
+    turtle.left(20)
     turtle.forward(10)
     turtle.setheading(turtle.towards((0, 0)))
     turtle.fd(10)

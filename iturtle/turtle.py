@@ -126,15 +126,6 @@ class Turtle:
         """
         self.pen = True
 
-    # @overload
-    # def speed(self) -> None: ...
-
-    # @overload
-    # def speed(self, velocity: str) -> None: ...
-
-    # @overload
-    # def speed(self, velocity: int) -> None: ...
-
     def speed(self, velocity=None):
         """
         Change the speed of the turtle (range 1-10) where 1 is slowest and 10 is fastest, 0 is fastest too.
@@ -260,7 +251,7 @@ class Turtle:
         """
         self.bearing = self.bearing - angle
         self._update_state()
-        # sleep(0.05)
+        sleep(0.05)
 
     def lt(self, angle: float):
         """Turn the Turtle num degrees to the left.
@@ -278,7 +269,7 @@ class Turtle:
         """
         self.bearing = self.bearing + angle
         self._update_state()
-        # sleep(0.05)
+        sleep(0.05)
 
     @overload
     def dot(self) -> None: ...
