@@ -1,11 +1,18 @@
 import { DOMWidgetModel, DOMWidgetView, ISerializers } from '@jupyter-widgets/base';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import TurtleQuest from './quest';
+import Screen from './quest';
 import { MODULE_NAME, MODULE_VERSION } from './version';
 import { TurtleAction } from './interface';
 
 import '../css/widget.css';
+
+export interface TurtleState {
+    x: number;
+    y: number;
+    bearing: number;
+    show: boolean;
+}
 
 export interface WidgetModelState {
     _model_module: string;
@@ -18,11 +25,10 @@ export interface WidgetModelState {
     id: number;
     width: number;
     height: number;
-    x: number;
-    y: number;
     background: string;
     size: number;
     bearing: number;
+    turtles: Record<string, TurtleState>;
     action: TurtleAction;
     show: boolean;
 }
@@ -57,7 +63,7 @@ export class TurtleView extends DOMWidgetView {
     render(): void {
         this.el.classList.add('custom-widget');
 
-        const component = React.createElement(TurtleQuest, {
+        const component = React.createElement(Screen, {
             model: this.model,
         });
         ReactDOM.render(component, this.el);

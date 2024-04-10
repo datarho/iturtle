@@ -13,6 +13,12 @@ You can install using `pip`:
 pip install iturtle
 ```
 
+Here is the suggested conda environment:
+
+```bash
+conda create -n turtle -c conda-forge python=3.10 jupyterlab=3.5
+```
+
 ## Usage
 
 Logo is an educational programming language, designed in 1967 by Wally Feurzeig, Seymour Papert, and Cynthia Solomon. Logo is not an acronym: the name was coined by Feurzeig while he was at Bolt, Beranek and Newman, and derives from the Greek logos, meaning word or thought.

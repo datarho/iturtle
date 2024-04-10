@@ -2,24 +2,26 @@ import { WidgetModel } from '@jupyter-widgets/base';
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
 import { Camera, GridDots } from 'tabler-icons-react';
 import { ActionType, Coord, FontSpec, TurtleAction } from './interface';
-import { useModelState, WidgetModelContext } from './store';
+import { WidgetModelContext, useModelState } from './store';
+import { TurtleState } from './widget';
 
 import '../css/widget.css';
+
 
 interface WidgetProps {
     model: WidgetModel;
 }
 
-const Turtle: FunctionComponent = () => {
-    const [x] = useModelState('x');
-    const [y] = useModelState('y');
-    const [bearing] = useModelState('bearing');
-    const [show] = useModelState('show');
+interface TurtleProps {
+    id: string;
+    state: TurtleState;
+}
 
+const Turtle: FunctionComponent<TurtleProps> = ({ id, state }) => {
     return (
-        show ?
-            <svg x={x - 15} y={y - 15} width='32' height='32' xmlns='http://www.w3.org/2000/svg'>
-                <g transform={`rotate(${(bearing + 90) % 360}, 15, 15)`} >
+        state.show ?
+            <svg x={state.x - 15} y={state.y - 15} width='32' height='32' xmlns='http://www.w3.org/2000/svg'>
+                <g transform={`rotate(${(-state.bearing + 90) % 360}, 15, 15)`} >
                     <path d='M16 0.248374C13.9097 0.248374 12.2153 1.9429 12.2153 4.03313L12.2153 7.81788C12.2153 9.90811 13.9097 11.6026 16 11.6026 18.0904 11.6026 19.7848 9.90811 19.7848 7.81788L19.7848 4.03313C19.7848 1.9429 18.0903 0.248374 16 0.248374Z' fill='#9DD7F5' />
                     <path d='M19.7848 7.81788C19.7848 9.90811 18.0904 11.6026 16 11.6026L16 11.6026C16 7.9125 16 4.03313 16 0.248374L16 0.248374C18.0904 0.248374 19.7848 1.9429 19.7848 4.03313L19.7848 7.81788Z' fill='#78B9EB' />
                     <path d='M10.3323 11.6026 5.67713 11.6026C2.54165 11.6026 0 14.1444 0 17.2798L10.3323 17.2798 10.3323 11.6026Z' fill='#9DD7F5' />
@@ -40,19 +42,19 @@ const Turtle: FunctionComponent = () => {
     )
 }
 
-const TurtleQuest: FunctionComponent = () => {
+const Screen: FunctionComponent = () => {
     const [id] = useModelState('id');
     const [width] = useModelState('width');
     const [height] = useModelState('height');
     const [action] = useModelState('action');
     const [background] = useModelState('background');
+    const [turtles] = useModelState('turtles');
 
     const [actions, setActions] = useState<TurtleAction[]>([]);
     const [grid, setGrid] = useState(true);
 
     const ref = useRef<SVGSVGElement | null>(null);
-
-    let position: Coord = [0, 0];
+    const positions = useRef<Record<string, Coord>>({});
 
     useEffect(() => {
         const saved = localStorage.getItem(id.toString());
@@ -68,17 +70,30 @@ const TurtleQuest: FunctionComponent = () => {
             // there is a new one. However, we'll need to persist existing actions before the change, as we'll
             // load these actions during mount with the latest action syncing from the kernel :-)
 
-            setActions(actions => {
-                if (action.type) {
-                    localStorage.setItem(id.toString(), JSON.stringify(actions));
+            if (Object.keys(action).length === 0) {
+                return;
+            }
 
-                    return [...actions, action];
-                } else {
-                    return actions;
+            setActions(actions => {
+                switch (action.type) {
+                    case ActionType.SOUND:
+                        playSound(action);
+
+                        return actions;
+                    case ActionType.CLEAR: {
+                        const t = actions.filter((tt) => tt.id !== action.id);
+                        localStorage.setItem(id.toString(), JSON.stringify(t));
+                        return t;
+                    }
+
+                    default:
+                        localStorage.setItem(id.toString(), JSON.stringify(actions));
+                        return [...actions, action];
                 }
             });
         }
     }, [action, id]);
+
 
     const getTextWidth = (font?: FontSpec, text?: string) => {
         if (!font || !text) {
@@ -115,7 +130,17 @@ const TurtleQuest: FunctionComponent = () => {
     }
 
     const moveAbsolute = (action: TurtleAction): JSX.Element => {
-        position = action.position.slice() as Coord;
+        positions.current[action.id] = action.position.slice() as Coord;
+
+        return <></>;
+    }
+
+    const playSound = (action: TurtleAction): JSX.Element => {
+        const audio = new Audio(action.media);
+        audio.autoplay = true;
+        audio.addEventListener('ended', () => {
+            audio.src = '';
+        });
 
         return <></>;
     }
@@ -126,8 +151,8 @@ const TurtleQuest: FunctionComponent = () => {
 
     const lineAbsolute = (action: TurtleAction): JSX.Element => {
         if (action.pen) {
-            const steps = Math.round(action.distance / (3 * 1.1 ** action.velocity * action.velocity));
-            const duration = Math.round(steps * 10);
+            const duration = Math.round(action.distance / (3 * 1.1 ** action.velocity * action.velocity) * 10);
+            const position = positions.current[action.id] ?? [width / 2, height / 2];
 
             const visual =
                 <line
@@ -136,13 +161,13 @@ const TurtleQuest: FunctionComponent = () => {
                     x2={action.position[0]}
                     y2={action.position[1]}
                     strokeLinecap='round'
-                    strokeWidth={1}
+                    strokeWidth={action.size}
                     stroke={action.color}
                 >
                     <animate attributeName='stroke-dashoffset' from='1000' to='0' dur={`${duration}ms`} calcMode='linear forwards'></animate>
                 </line>;
 
-            position = action.position.slice() as Coord;
+            positions.current[action.id] = action.position.slice() as Coord;
 
             return visual;
         } else {
@@ -155,7 +180,7 @@ const TurtleQuest: FunctionComponent = () => {
             <circle
                 cx={action.position[0]}
                 cy={action.position[1]}
-                r={action.size / 2}
+                r={action.radius}
                 stroke={action.color}
                 strokeWidth={1}
                 fill={action.color}
@@ -163,23 +188,32 @@ const TurtleQuest: FunctionComponent = () => {
         );
     }
 
-    const circle = (action: TurtleAction): JSX.Element => {
+    const drawCircle = (action: TurtleAction): JSX.Element => {
+        const position = positions.current[action.id] ?? [width / 2, height / 2];
+
         const visual = (
-            <path d={`M ${position[0]},${position[1]} A ${action.radius},${action.radius}, 0 0 ${action.clockwise} ${action.position[0]},${action.position[1]}`} stroke={action.color} strokeWidth={1} fill="transparent" />
+            <path
+                d={`M ${position[0]},${position[1]} A ${action.radius},${action.radius}, 0 0 ${action.clockwise} ${action.position[0]},${action.position[1]}`}
+                stroke={action.color}
+                strokeWidth={1}
+                fill="transparent"
+            />
         );
-        position = action.position.slice() as Coord;
+
+        positions.current[action.id] = action.position.slice() as Coord;
+
         return visual
     }
 
     const writeText = (action: TurtleAction): JSX.Element => {
         const width = getTextWidth(action.font, action.text);
 
-        position = getTextPos(action, width) as Coord;
+        positions.current[action.id] = getTextPos(action, width) as Coord;
 
         return (
             <text
-                x={position[0]}
-                y={position[1]}
+                x={positions.current[action.id][0]}
+                y={positions.current[action.id][1]}
                 font-family={action.font?.[0]}
                 font-size={action.font?.[1]}
                 font-style={action.font?.[2]}
@@ -189,13 +223,19 @@ const TurtleQuest: FunctionComponent = () => {
         )
     }
 
+    const clear = (action: TurtleAction): JSX.Element => {
+        return <></>;
+    }
+
     const getRenderer: Record<ActionType, (action: TurtleAction) => React.JSX.Element> = {
         [ActionType.MOVE_ABSOLUTE]: moveAbsolute,
         [ActionType.MOVE_RELATIVE]: moveRelative,
         [ActionType.LINE_ABSOLUTE]: lineAbsolute,
         [ActionType.DRAW_DOT]: drawDot,
         [ActionType.WRITE_TEXT]: writeText,
-        [ActionType.CIRCLE]: circle,
+        [ActionType.CIRCLE]: drawCircle,
+        [ActionType.SOUND]: playSound,
+        [ActionType.CLEAR]: clear,
     }
 
     const takePicture = () => {
@@ -252,7 +292,11 @@ const TurtleQuest: FunctionComponent = () => {
                     })
                 }
 
-                <Turtle />
+                {
+                    Object.entries(turtles).map(([id, state]) =>
+                        <Turtle id={id} state={state} />
+                    )
+                }
             </svg>
         </div>
     );
@@ -266,4 +310,4 @@ const withModelContext = (Component: FunctionComponent) => {
     );
 }
 
-export default withModelContext(TurtleQuest);
+export default withModelContext(Screen);

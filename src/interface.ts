@@ -9,9 +9,12 @@ export enum ActionType {
     DRAW_DOT = 'D',
     WRITE_TEXT = 'W',
     CIRCLE = 'C',
+    SOUND = 'S',
+    CLEAR = 'CLR',
 }
 
 export interface TurtleAction {
+    id: string;             // turtle id
     type: ActionType;
     pen: number;
     color: string;
@@ -25,4 +28,5 @@ export interface TurtleAction {
     text?: string;
     font?: FontSpec;
     align?: string;
+    media?: string;
 }

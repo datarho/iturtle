@@ -1,4 +1,4 @@
-from .turtle import Turtle
+from .turtle import Turtle, Screen
 from .version import __version__, version_info
 
 
