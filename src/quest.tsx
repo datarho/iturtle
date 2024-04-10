@@ -80,10 +80,11 @@ const Screen: FunctionComponent = () => {
                         playSound(action);
 
                         return actions;
-                    case ActionType.CLEAR:
+                    case ActionType.CLEAR: {
                         const t = actions.filter((tt) => tt.id !== action.id);
                         localStorage.setItem(id.toString(), JSON.stringify(t));
                         return t;
+                    }
 
                     default:
                         localStorage.setItem(id.toString(), JSON.stringify(actions));
