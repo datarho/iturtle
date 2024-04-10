@@ -85,14 +85,13 @@ class Screen(DOMWidget):
 
     def _add_action(self, turtle, action_type: ActionType):
         # Build basic action properties
-
         action = dict(
             id=str(turtle.id),
             type=action_type,
             media=turtle.media,
             pen=turtle.pen,
             color=turtle.pen_color,
-            distance=turtle._distance,
+            distance=abs(turtle._distance),
             position=(turtle.x, turtle.y),
             velocity=self.velocity,
             radius=turtle.radius,
@@ -121,10 +120,9 @@ class Screen(DOMWidget):
         steps = max(
             abs(distance) * self.DELAY / (3 * 1.1**self.velocity * self.velocity), 1
         )
-
         # Each step incurs a screen update delay of 100ms by default. We should not shorten the delay as
         # websocket won't be able to process all the messages in a short time.
-
+        print(steps)
         sleep(steps * 0.05)
 
     def delay(self, d: int) -> None:
