@@ -6,6 +6,7 @@ import { WidgetModelContext, useModelState } from './store';
 import { TurtleState } from './widget';
 
 import '../css/widget.css';
+import * as ReactDOMServer from 'react-dom/server';
 
 
 interface WidgetProps {
@@ -49,6 +50,7 @@ const Screen: FunctionComponent = () => {
     const [action] = useModelState('action');
     const [background] = useModelState('background');
     const [turtles] = useModelState('turtles');
+    const [len, setLen] = useState(0);
 
     const [actions, setActions] = useState<TurtleAction[]>([]);
     const [grid, setGrid] = useState(true);
@@ -63,37 +65,6 @@ const Screen: FunctionComponent = () => {
             setActions(JSON.parse(saved));
         }
     }, [id]);
-
-    useEffect(() => {
-        if (id) {
-            // As model state now only provides addendum action, we'll need to accumulate the actions whenever
-            // there is a new one. However, we'll need to persist existing actions before the change, as we'll
-            // load these actions during mount with the latest action syncing from the kernel :-)
-
-            if (Object.keys(action).length === 0) {
-                return;
-            }
-
-            setActions(actions => {
-                switch (action.type) {
-                    case ActionType.SOUND:
-                        playSound(action);
-
-                        return actions;
-                    case ActionType.CLEAR: {
-                        const t = actions.filter((tt) => tt.id !== action.id);
-                        localStorage.setItem(id.toString(), JSON.stringify(t));
-                        return t;
-                    }
-
-                    default:
-                        localStorage.setItem(id.toString(), JSON.stringify(actions));
-                        return [...actions, action];
-                }
-            });
-        }
-    }, [action, id]);
-
 
     const getTextWidth = (font?: FontSpec, text?: string) => {
         if (!font || !text) {
@@ -258,8 +229,49 @@ const Screen: FunctionComponent = () => {
         setGrid((grid) => !grid);
     }
 
+    useEffect(() => {
+        if (id) {
+            // As model state now only provides addendum action, we'll need to accumulate the actions whenever
+            // there is a new one. However, we'll need to persist existing actions before the change, as we'll
+            // load these actions during mount with the latest action syncing from the kernel :-)
+
+            if (Object.keys(action).length === 0) {
+                return;
+            }
+            // setActions(actions => {
+            switch (action.type) {
+                case ActionType.SOUND:
+                    playSound(action);
+
+                // return actions;
+                case ActionType.CLEAR: {
+                    const t = actions.filter((tt) => tt.id !== action.id);
+                    localStorage.setItem(id.toString(), JSON.stringify(t));
+                    // return t;
+                }
+
+                default:
+                    // const svg = document.getElementById("svgCanvas");
+                    const renderer = getRenderer[action.type];
+                    const brush = renderer(action);
+                    const canvas = document.getElementById("svgCanvas");
+                    const htmlString = ReactDOMServer.renderToStaticMarkup(brush);
+                    if (canvas && brush) {
+                        canvas.innerHTML += htmlString
+                    }
+                    setLen(len + 1)
+                    // console.log("length:", len)
+                    console.log("action", action)
+                // localStorage.setItem(id.toString(), JSON.stringify(actions));
+                // return [...actions, action];
+            }
+            // });
+        }
+    }, [action, id]);
+
     return (
         <div className='Widget'>
+            <div>Length: {len}</div>
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <div title='Camera' onClick={takePicture} style={{ paddingLeft: '1em' }}>
                     <Camera size={24} color='grey' />
@@ -269,7 +281,7 @@ const Screen: FunctionComponent = () => {
                 </div>
             </div>
 
-            <svg ref={ref} viewBox={`0 0 ${width + 1} ${height + 1}`} xmlns='http://www.w3.org/2000/svg'>
+            <svg id={"svgCanvas"} ref={ref} viewBox={`0 0 ${width + 1} ${height + 1}`} xmlns='http://www.w3.org/2000/svg'>
                 <defs>
                     <pattern id='grid' width='20' height='20' patternUnits='userSpaceOnUse'>
                         <path d='M 0,0 L 20,0 M 0,0 L 0,20' stroke='gray' stroke-width='0.3' />
@@ -285,13 +297,13 @@ const Screen: FunctionComponent = () => {
                         <></>
                 }
 
-                {
+                {/* {
                     actions?.map((action,) => {
                         const renderer = getRenderer[action.type];
 
                         return renderer(action);
                     })
-                }
+                } */}
 
                 {
                     Object.entries(turtles).map(([id, state]) =>
