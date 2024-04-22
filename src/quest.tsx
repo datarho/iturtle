@@ -231,10 +231,12 @@ const Screen: FunctionComponent = () => {
                 }
 
                 default:
+                    // We add ${id} into id of svg element to prevent conflicts of svg background in different tabs or cells
                     const svg = document.getElementById(`${id}_svgCanvas`);
                     const renderer = getRenderer[action.type];
                     const visual = renderer(action);
 
+                    // Update start point of next painted line
                     positions.current[action.id] = action.position.slice() as Coord;
                     if (visual) {
                         svg?.append(visual)
