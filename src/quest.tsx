@@ -174,7 +174,7 @@ const Screen: FunctionComponent = () => {
         visual.setAttribute("font-family", `${action.font?.[0]}`);
         visual.setAttribute("font-size", `${action.font?.[1]}`);
         visual.setAttribute("font-style", `${action.font?.[2]}`);
-        visual.innerHTML = `<div>${action.text}</div>`
+        visual.innerHTML = `${action.text}`
         return visual
     }
 
