@@ -6,7 +6,6 @@ import { WidgetModelContext, useModelState } from './store';
 import { TurtleState } from './widget';
 
 import '../css/widget.css';
-import * as ReactDOMServer from 'react-dom/server';
 
 
 interface WidgetProps {
@@ -251,18 +250,43 @@ const Screen: FunctionComponent = () => {
                 }
 
                 default:
-                    // const svg = document.getElementById("svgCanvas");
-                    const renderer = getRenderer[action.type];
-                    const brush = renderer(action);
-                    const canvas = document.getElementById("svgCanvas");
-                    const htmlString = ReactDOMServer.renderToStaticMarkup(brush);
-                    if (canvas && brush) {
-                        canvas.innerHTML += htmlString
-                    }
+                    const svg = document.getElementById("svgCanvas");
+                    // const renderer = getRenderer[action.type];
+                    getRenderer[action.type];
+                    // const brush = renderer(action);
+                    // const canvas = document.getElementById("svgCanvas");
+                    // const htmlString = ReactDOMServer.renderToStaticMarkup(brush);
+                    // if (canvas && brush) {
+                    //     canvas.innerHTML += htmlString
+                    // }
+                    const position = positions.current[action.id] ?? [width / 2, height / 2];
+                    var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", `${position[0]}`);
+                    line.setAttribute("y1", `${position[1]}`);
+                    line.setAttribute("x2", `${action.position[0]}`);
+                    line.setAttribute("y2", `${action.position[1]}`);
+                    line.setAttribute("strokeLinecap", "round");
+                    line.setAttribute("strokeWidth", action.size.toString());
+                    line.setAttribute("stroke", action.color);
+
+                    // const animateElement = document.createElementNS("http://www.w3.org/2000/svg", 'animate');
+                    // const steps = Math.round(action.distance / (3 * 1.1 ** action.velocity * action.velocity));
+                    // const duration = Math.round(steps * 10);
+                    // animateElement.setAttribute('attributeName', 'stroke-dashoffset');
+                    // animateElement.setAttribute('from', '1000');
+                    // animateElement.setAttribute('to', '0');
+                    // animateElement.setAttribute('dur', `${duration}ms`);
+                    // animateElement.setAttribute('calcMode', 'linear forwards');
+
+                    positions.current[action.id] = action.position.slice() as Coord;
+
+                    // line.appendChild(animateElement)
+
+                    svg?.append(line)
                     setLen(len + 1)
                     // console.log("length:", len)
                     console.log("action", action)
-                // localStorage.setItem(id.toString(), JSON.stringify(actions));
+                    localStorage.setItem(id.toString(), JSON.stringify(actions));
                 // return [...actions, action];
             }
             // });
