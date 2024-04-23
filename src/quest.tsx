@@ -61,7 +61,19 @@ const Screen: FunctionComponent = () => {
         const saved = localStorage.getItem(id.toString());
 
         if (saved) {
-            setActions(JSON.parse(saved));
+            const savedData: TurtleAction[] = JSON.parse(saved);
+            const svg = document.getElementById(`${id}_svgCanvas`);
+
+            // Painting svg according to data in local storage once component is set up
+            savedData.forEach((action) => {
+                const renderer = getRenderer[action.type];
+                const visual = renderer(action);
+                if (visual) {
+                    svg?.append(visual)
+                }
+            })
+
+            setActions(savedData);
         }
     }, [id]);
 
@@ -228,6 +240,7 @@ const Screen: FunctionComponent = () => {
                 case ActionType.CLEAR: {
                     const t = actions.filter((tt) => tt.id !== action.id);
                     localStorage.setItem(id.toString(), JSON.stringify(t));
+                    setActions(t)
                 }
 
                 default:
@@ -241,7 +254,13 @@ const Screen: FunctionComponent = () => {
                     if (visual) {
                         svg?.append(visual)
                     }
-                    localStorage.setItem(id.toString(), JSON.stringify(actions));
+
+                    // Since this is default case in switch, it would be triggered when component set up.
+                    // We need to set data back to local storage to avoid getting lost of data while keep refreshing page
+                    setActions(actions => {
+                        localStorage.setItem(id.toString(), JSON.stringify(actions));
+                        return ([...actions, action])
+                    })
             }
         }
     }, [action, id]);
