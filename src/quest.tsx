@@ -136,6 +136,7 @@ const Screen: FunctionComponent = () => {
             const position = positions.current[action.id] ?? [width / 2, height / 2];
 
             const visual = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            visual.setAttribute("class", `class${action.id}`); // For fetching elements in deleting
             visual.setAttribute("x1", `${position[0]}`);
             visual.setAttribute("y1", `${position[1]}`);
             visual.setAttribute("x2", `${action.position[0]}`);
@@ -152,6 +153,7 @@ const Screen: FunctionComponent = () => {
 
     const drawDot = (action: TurtleAction): SVGCircleElement | undefined => {
         const visual = document.createElementNS(SVG_NS, "circle");
+        visual.setAttribute("class", `class${action.id}`); // For fetching elements in deleting
         visual.setAttribute("cx", `${action.position[0]}`);
         visual.setAttribute("cy", `${action.position[1]}`);
         visual.setAttribute("r", `${action.radius}`);
@@ -165,6 +167,7 @@ const Screen: FunctionComponent = () => {
         const position = positions.current[action.id] ?? [width / 2, height / 2];
 
         const visual = document.createElementNS(SVG_NS, "path");
+        visual.setAttribute("class", `class${action.id}`); // For fetching elements in deleting
         visual.setAttribute("d", `M ${position[0]},${position[1]} A ${action.radius},${action.radius}, 0 0 ${action.clockwise} ${action.position[0]},${action.position[1]}`);
         visual.setAttribute("stroke", `${action.color}`);
         visual.setAttribute("strokeWidth", "1");
@@ -181,6 +184,7 @@ const Screen: FunctionComponent = () => {
         positions.current[action.id] = getTextPos(action, width) as Coord;
 
         const visual = document.createElementNS(SVG_NS, "text");
+        visual.setAttribute("class", `class${action.id}`); // For fetching elements in deleting
         visual.setAttribute("x", `${positions.current[action.id][0]}`);
         visual.setAttribute("y", `${positions.current[action.id][1]}`);
         visual.setAttribute("font-family", `${action.font?.[0]}`);
@@ -238,6 +242,13 @@ const Screen: FunctionComponent = () => {
                     playSound(action);
 
                 case ActionType.CLEAR: {
+                    // Erasing all paths with same id of turtle
+                    const svg = document.getElementById(`${id}_svgCanvas`);
+                    const elementsToRemove = svg?.querySelectorAll(`.class${action.id}`);
+                    elementsToRemove?.forEach((element) => {
+                        svg?.removeChild(element)
+                    })
+
                     const t = actions.filter((tt) => tt.id !== action.id);
                     localStorage.setItem(id.toString(), JSON.stringify(t));
                     setActions(t)
