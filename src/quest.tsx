@@ -68,8 +68,9 @@ const Screen: FunctionComponent = () => {
             savedData.forEach((action) => {
                 const renderer = getRenderer[action.type];
                 const visual = renderer(action);
-                if (visual) {
-                    svg?.append(visual)
+                const base = document.getElementById(`${id}_baseline`);
+                if (base && visual && svg) {
+                    svg.insertBefore(visual, base)
                 }
             })
 
@@ -257,13 +258,14 @@ const Screen: FunctionComponent = () => {
                 default:
                     // We add ${id} into id of svg element to prevent conflicts of svg background in different tabs or cells
                     const svg = document.getElementById(`${id}_svgCanvas`);
+                    const base = document.getElementById(`${id}_baseline`);
                     const renderer = getRenderer[action.type];
                     const visual = renderer(action);
 
                     // Update start point of next painted line
                     positions.current[action.id] = action.position.slice() as Coord;
-                    if (visual) {
-                        svg?.append(visual)
+                    if (base && visual && svg) {
+                        svg.insertBefore(visual, base)
                     }
 
                     // Since this is default case in switch, it would be triggered when component set up.
@@ -295,6 +297,8 @@ const Screen: FunctionComponent = () => {
                 </defs>
 
                 <rect width='100%' height='100%' fill={`${background}`} />
+
+                <svg id={`${id}_baseline`} width='100%' height='100%'></svg>
 
                 {
                     grid ?
