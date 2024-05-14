@@ -298,7 +298,7 @@ const Screen: FunctionComponent = () => {
 
                 <rect width='100%' height='100%' fill={`${background}`} />
 
-                <svg id={`${id}_baseline`} width='100%' height='100%'></svg>
+                <svg id={`${id}_baseline`}></svg>
 
                 {
                     grid ?
