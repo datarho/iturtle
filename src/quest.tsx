@@ -58,7 +58,7 @@ const Screen: FunctionComponent = () => {
     const positions = useRef<Record<string, Coord>>({});
 
     useEffect(() => {
-        const saved = localStorage.getItem(id.toString());
+        const saved = sessionStorage.getItem(id.toString());
 
         if (saved) {
             const savedData: TurtleAction[] = JSON.parse(saved);
@@ -251,7 +251,7 @@ const Screen: FunctionComponent = () => {
                     })
 
                     const t = actions.filter((tt) => tt.id !== action.id);
-                    localStorage.setItem(id.toString(), JSON.stringify(t));
+                    sessionStorage.setItem(id.toString(), JSON.stringify(t));
                     setActions(t)
                 }
 
@@ -271,7 +271,7 @@ const Screen: FunctionComponent = () => {
                     // Since this is default case in switch, it would be triggered when component set up.
                     // We need to set data back to local storage to avoid getting lost of data while keep refreshing page
                     setActions(actions => {
-                        localStorage.setItem(id.toString(), JSON.stringify(actions));
+                        sessionStorage.setItem(id.toString(), JSON.stringify(actions));
                         return ([...actions, action])
                     })
             }
