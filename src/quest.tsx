@@ -1,13 +1,15 @@
 import { WidgetModel } from '@jupyter-widgets/base';
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
-import { Camera, GridDots } from 'tabler-icons-react';
+import { Camera, Download, GridDots } from 'tabler-icons-react';
 import { ActionType, Coord, FontSpec, TurtleAction } from './interface';
 import { WidgetModelContext, useModelState } from './store';
 import { TurtleState } from './widget';
 
 import '../css/widget.css';
+import { saveAs } from 'file-saver';
+import { toPng } from 'html-to-image';
 
-const SVG_NS = "http://www.w3.org/2000/svg";
+const SVG_NS = 'http://www.w3.org/2000/svg';
 
 interface WidgetProps {
     model: WidgetModel;
@@ -136,15 +138,15 @@ const Screen: FunctionComponent = () => {
         if (action.pen) {
             const position = positions.current[action.id] ?? [width / 2, height / 2];
 
-            const visual = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            visual.setAttribute("class", `class${action.id}`); // For fetching elements in deleting
-            visual.setAttribute("x1", `${position[0]}`);
-            visual.setAttribute("y1", `${position[1]}`);
-            visual.setAttribute("x2", `${action.position[0]}`);
-            visual.setAttribute("y2", `${action.position[1]}`);
-            visual.setAttribute("strokeLinecap", "round");
-            visual.setAttribute("strokeWidth", action.size.toString());
-            visual.setAttribute("stroke", action.color);
+            const visual = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
+            visual.setAttribute('x1', `${position[0]}`);
+            visual.setAttribute('y1', `${position[1]}`);
+            visual.setAttribute('x2', `${action.position[0]}`);
+            visual.setAttribute('y2', `${action.position[1]}`);
+            visual.setAttribute('strokeLinecap', 'round');
+            visual.setAttribute('strokeWidth', action.size.toString());
+            visual.setAttribute('stroke', action.color);
 
             positions.current[action.id] = action.position.slice() as Coord;
 
@@ -153,26 +155,26 @@ const Screen: FunctionComponent = () => {
     }
 
     const drawDot = (action: TurtleAction): SVGCircleElement | undefined => {
-        const visual = document.createElementNS(SVG_NS, "circle");
-        visual.setAttribute("class", `class${action.id}`); // For fetching elements in deleting
-        visual.setAttribute("cx", `${action.position[0]}`);
-        visual.setAttribute("cy", `${action.position[1]}`);
-        visual.setAttribute("r", `${action.radius}`);
-        visual.setAttribute("stroke", `${action.color}`);
-        visual.setAttribute("strokeWidth", "1");
-        visual.setAttribute("fill", action.color);
+        const visual = document.createElementNS(SVG_NS, 'circle');
+        visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
+        visual.setAttribute('cx', `${action.position[0]}`);
+        visual.setAttribute('cy', `${action.position[1]}`);
+        visual.setAttribute('r', `${action.radius}`);
+        visual.setAttribute('stroke', `${action.color}`);
+        visual.setAttribute('strokeWidth', '1');
+        visual.setAttribute('fill', action.color);
         return visual;
     }
 
     const drawCircle = (action: TurtleAction): SVGPathElement | undefined => {
         const position = positions.current[action.id] ?? [width / 2, height / 2];
 
-        const visual = document.createElementNS(SVG_NS, "path");
-        visual.setAttribute("class", `class${action.id}`); // For fetching elements in deleting
-        visual.setAttribute("d", `M ${position[0]},${position[1]} A ${action.radius},${action.radius}, 0 0 ${action.clockwise} ${action.position[0]},${action.position[1]}`);
-        visual.setAttribute("stroke", `${action.color}`);
-        visual.setAttribute("strokeWidth", "1");
-        visual.setAttribute("fill", "transparent");
+        const visual = document.createElementNS(SVG_NS, 'path');
+        visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
+        visual.setAttribute('d', `M ${position[0]},${position[1]} A ${action.radius},${action.radius}, 0 0 ${action.clockwise} ${action.position[0]},${action.position[1]}`);
+        visual.setAttribute('stroke', `${action.color}`);
+        visual.setAttribute('strokeWidth', '1');
+        visual.setAttribute('fill', 'transparent');
 
         positions.current[action.id] = action.position.slice() as Coord;
 
@@ -184,13 +186,13 @@ const Screen: FunctionComponent = () => {
 
         positions.current[action.id] = getTextPos(action, width) as Coord;
 
-        const visual = document.createElementNS(SVG_NS, "text");
-        visual.setAttribute("class", `class${action.id}`); // For fetching elements in deleting
-        visual.setAttribute("x", `${positions.current[action.id][0]}`);
-        visual.setAttribute("y", `${positions.current[action.id][1]}`);
-        visual.setAttribute("font-family", `${action.font?.[0]}`);
-        visual.setAttribute("font-size", `${action.font?.[1]}`);
-        visual.setAttribute("font-style", `${action.font?.[2]}`);
+        const visual = document.createElementNS(SVG_NS, 'text');
+        visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
+        visual.setAttribute('x', `${positions.current[action.id][0]}`);
+        visual.setAttribute('y', `${positions.current[action.id][1]}`);
+        visual.setAttribute('font-family', `${action.font?.[0]}`);
+        visual.setAttribute('font-size', `${action.font?.[1]}`);
+        visual.setAttribute('font-style', `${action.font?.[2]}`);
         visual.innerHTML = `${action.text}`
         return visual
     }
@@ -225,6 +227,15 @@ const Screen: FunctionComponent = () => {
         element.click();
     }
 
+    const saveAsPng = async () => {
+        const source = ref.current;
+
+        if (source) {
+            const dataUrl = await toPng(source as unknown as HTMLElement, { quality: 0.95 });
+            saveAs(dataUrl, 'my-svg.png');
+        }
+    }
+
     const toggleGrid = () => {
         setGrid((grid) => !grid);
     }
@@ -241,6 +252,7 @@ const Screen: FunctionComponent = () => {
             switch (action.type) {
                 case ActionType.SOUND:
                     playSound(action);
+                    break
 
                 case ActionType.CLEAR: {
                     // Erasing all paths with same id of turtle
@@ -253,9 +265,10 @@ const Screen: FunctionComponent = () => {
                     const t = actions.filter((tt) => tt.id !== action.id);
                     sessionStorage.setItem(id.toString(), JSON.stringify(t));
                     setActions(t)
+                    break
                 }
 
-                default:
+                default: {
                     // We add ${id} into id of svg element to prevent conflicts of svg background in different tabs or cells
                     const svg = document.getElementById(`${id}_svgCanvas`);
                     const base = document.getElementById(`${id}_baseline`);
@@ -274,6 +287,8 @@ const Screen: FunctionComponent = () => {
                         sessionStorage.setItem(id.toString(), JSON.stringify(actions));
                         return ([...actions, action])
                     })
+                    break
+                }
             }
         }
     }, [action, id]);
@@ -284,6 +299,11 @@ const Screen: FunctionComponent = () => {
                 <div title='Camera' onClick={takePicture} style={{ paddingLeft: '1em' }}>
                     <Camera size={24} color='grey' />
                 </div>
+
+                <div title='Download' onClick={saveAsPng} style={{ paddingLeft: '1em' }}>
+                    <Download size={24} color='grey' />
+                </div>
+
                 <div title='Grid' onClick={toggleGrid} style={{ paddingLeft: '1em' }}>
                     <GridDots size={24} color='grey' />
                 </div>
