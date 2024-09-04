@@ -1,12 +1,15 @@
 import { WidgetModel } from '@jupyter-widgets/base';
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
-import { Camera, GridDots } from 'tabler-icons-react';
+import { Camera, Download, GridDots } from 'tabler-icons-react';
 import { ActionType, Coord, FontSpec, TurtleAction } from './interface';
 import { WidgetModelContext, useModelState } from './store';
 import { TurtleState } from './widget';
 
 import '../css/widget.css';
+import { saveAs } from 'file-saver';
+import { toPng } from 'html-to-image';
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
 
 interface WidgetProps {
     model: WidgetModel;
@@ -57,43 +60,25 @@ const Screen: FunctionComponent = () => {
     const positions = useRef<Record<string, Coord>>({});
 
     useEffect(() => {
-        const saved = localStorage.getItem(id.toString());
+        const saved = sessionStorage.getItem(id.toString());
 
         if (saved) {
-            setActions(JSON.parse(saved));
+            const savedData: TurtleAction[] = JSON.parse(saved);
+            const svg = document.getElementById(`${id}_svgCanvas`);
+
+            // Painting svg according to data in local storage once component is set up
+            savedData.forEach((action) => {
+                const renderer = getRenderer[action.type];
+                const visual = renderer(action);
+                const base = document.getElementById(`${id}_baseline`);
+                if (base && visual && svg) {
+                    svg.insertBefore(visual, base)
+                }
+            })
+
+            setActions(savedData);
         }
     }, [id]);
-
-    useEffect(() => {
-        if (id) {
-            // As model state now only provides addendum action, we'll need to accumulate the actions whenever
-            // there is a new one. However, we'll need to persist existing actions before the change, as we'll
-            // load these actions during mount with the latest action syncing from the kernel :-)
-
-            if (Object.keys(action).length === 0) {
-                return;
-            }
-
-            setActions(actions => {
-                switch (action.type) {
-                    case ActionType.SOUND:
-                        playSound(action);
-
-                        return actions;
-                    case ActionType.CLEAR: {
-                        const t = actions.filter((tt) => tt.id !== action.id);
-                        localStorage.setItem(id.toString(), JSON.stringify(t));
-                        return t;
-                    }
-
-                    default:
-                        localStorage.setItem(id.toString(), JSON.stringify(actions));
-                        return [...actions, action];
-                }
-            });
-        }
-    }, [action, id]);
-
 
     const getTextWidth = (font?: FontSpec, text?: string) => {
         if (!font || !text) {
@@ -129,105 +114,94 @@ const Screen: FunctionComponent = () => {
         }
     }
 
-    const moveAbsolute = (action: TurtleAction): JSX.Element => {
+    const moveAbsolute = (action: TurtleAction): undefined => {
         positions.current[action.id] = action.position.slice() as Coord;
 
-        return <></>;
+        return undefined;
     }
 
-    const playSound = (action: TurtleAction): JSX.Element => {
+    const playSound = (action: TurtleAction): undefined => {
         const audio = new Audio(action.media);
         audio.autoplay = true;
         audio.addEventListener('ended', () => {
             audio.src = '';
         });
 
-        return <></>;
+        return undefined;
     }
 
-    const moveRelative = (action: TurtleAction): JSX.Element => {
-        return <></>;
+    const moveRelative = (action: TurtleAction): undefined => {
+        return undefined;
     }
 
-    const lineAbsolute = (action: TurtleAction): JSX.Element => {
+    const lineAbsolute = (action: TurtleAction): SVGLineElement | undefined => {
         if (action.pen) {
-            const duration = Math.round(action.distance / (3 * 1.1 ** action.velocity * action.velocity) * 10);
             const position = positions.current[action.id] ?? [width / 2, height / 2];
 
-            const visual =
-                <line
-                    x1={position[0]}
-                    y1={position[1]}
-                    x2={action.position[0]}
-                    y2={action.position[1]}
-                    strokeLinecap='round'
-                    strokeWidth={action.size}
-                    stroke={action.color}
-                >
-                    <animate attributeName='stroke-dashoffset' from='1000' to='0' dur={`${duration}ms`} calcMode='linear forwards'></animate>
-                </line>;
+            const visual = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
+            visual.setAttribute('x1', `${position[0]}`);
+            visual.setAttribute('y1', `${position[1]}`);
+            visual.setAttribute('x2', `${action.position[0]}`);
+            visual.setAttribute('y2', `${action.position[1]}`);
+            visual.setAttribute('strokeLinecap', 'round');
+            visual.setAttribute('strokeWidth', action.size.toString());
+            visual.setAttribute('stroke', action.color);
 
             positions.current[action.id] = action.position.slice() as Coord;
 
             return visual;
-        } else {
-            return <></>;
         }
     }
 
-    const drawDot = (action: TurtleAction): JSX.Element => {
-        return (
-            <circle
-                cx={action.position[0]}
-                cy={action.position[1]}
-                r={action.radius}
-                stroke={action.color}
-                strokeWidth={1}
-                fill={action.color}
-            />
-        );
+    const drawDot = (action: TurtleAction): SVGCircleElement | undefined => {
+        const visual = document.createElementNS(SVG_NS, 'circle');
+        visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
+        visual.setAttribute('cx', `${action.position[0]}`);
+        visual.setAttribute('cy', `${action.position[1]}`);
+        visual.setAttribute('r', `${action.radius}`);
+        visual.setAttribute('stroke', `${action.color}`);
+        visual.setAttribute('strokeWidth', '1');
+        visual.setAttribute('fill', action.color);
+        return visual;
     }
 
-    const drawCircle = (action: TurtleAction): JSX.Element => {
+    const drawCircle = (action: TurtleAction): SVGPathElement | undefined => {
         const position = positions.current[action.id] ?? [width / 2, height / 2];
 
-        const visual = (
-            <path
-                d={`M ${position[0]},${position[1]} A ${action.radius},${action.radius}, 0 0 ${action.clockwise} ${action.position[0]},${action.position[1]}`}
-                stroke={action.color}
-                strokeWidth={1}
-                fill="transparent"
-            />
-        );
+        const visual = document.createElementNS(SVG_NS, 'path');
+        visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
+        visual.setAttribute('d', `M ${position[0]},${position[1]} A ${action.radius},${action.radius}, 0 0 ${action.clockwise} ${action.position[0]},${action.position[1]}`);
+        visual.setAttribute('stroke', `${action.color}`);
+        visual.setAttribute('strokeWidth', '1');
+        visual.setAttribute('fill', 'transparent');
 
         positions.current[action.id] = action.position.slice() as Coord;
 
         return visual
     }
 
-    const writeText = (action: TurtleAction): JSX.Element => {
+    const writeText = (action: TurtleAction): SVGTextElement | undefined => {
         const width = getTextWidth(action.font, action.text);
 
         positions.current[action.id] = getTextPos(action, width) as Coord;
 
-        return (
-            <text
-                x={positions.current[action.id][0]}
-                y={positions.current[action.id][1]}
-                font-family={action.font?.[0]}
-                font-size={action.font?.[1]}
-                font-style={action.font?.[2]}
-            >
-                {action.text}
-            </text>
-        )
+        const visual = document.createElementNS(SVG_NS, 'text');
+        visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
+        visual.setAttribute('x', `${positions.current[action.id][0]}`);
+        visual.setAttribute('y', `${positions.current[action.id][1]}`);
+        visual.setAttribute('font-family', `${action.font?.[0]}`);
+        visual.setAttribute('font-size', `${action.font?.[1]}`);
+        visual.setAttribute('font-style', `${action.font?.[2]}`);
+        visual.innerHTML = `${action.text}`
+        return visual
     }
 
-    const clear = (action: TurtleAction): JSX.Element => {
-        return <></>;
+    const clear = (action: TurtleAction): undefined => {
+        return undefined;
     }
 
-    const getRenderer: Record<ActionType, (action: TurtleAction) => React.JSX.Element> = {
+    const getRenderer: Record<ActionType, (action: TurtleAction) => SVGPathElement | SVGLineElement | SVGCircleElement | SVGTextElement | undefined> = {
         [ActionType.MOVE_ABSOLUTE]: moveAbsolute,
         [ActionType.MOVE_RELATIVE]: moveRelative,
         [ActionType.LINE_ABSOLUTE]: lineAbsolute,
@@ -253,9 +227,71 @@ const Screen: FunctionComponent = () => {
         element.click();
     }
 
+    const saveAsPng = async () => {
+        const source = ref.current;
+
+        if (source) {
+            const dataUrl = await toPng(source as unknown as HTMLElement, { quality: 0.95 });
+            saveAs(dataUrl, 'my-svg.png');
+        }
+    }
+
     const toggleGrid = () => {
         setGrid((grid) => !grid);
     }
+
+    useEffect(() => {
+        if (id) {
+            // As model state now only provides addendum action, we'll need to accumulate the actions whenever
+            // there is a new one. However, we'll need to persist existing actions before the change, as we'll
+            // load these actions during mount with the latest action syncing from the kernel :-)
+
+            if (Object.keys(action).length === 0) {
+                return;
+            }
+            switch (action.type) {
+                case ActionType.SOUND:
+                    playSound(action);
+                    break
+
+                case ActionType.CLEAR: {
+                    // Erasing all paths with same id of turtle
+                    const svg = document.getElementById(`${id}_svgCanvas`);
+                    const elementsToRemove = svg?.querySelectorAll(`.class${action.id}`);
+                    elementsToRemove?.forEach((element) => {
+                        svg?.removeChild(element)
+                    })
+
+                    const t = actions.filter((tt) => tt.id !== action.id);
+                    sessionStorage.setItem(id.toString(), JSON.stringify(t));
+                    setActions(t)
+                    break
+                }
+
+                default: {
+                    // We add ${id} into id of svg element to prevent conflicts of svg background in different tabs or cells
+                    const svg = document.getElementById(`${id}_svgCanvas`);
+                    const base = document.getElementById(`${id}_baseline`);
+                    const renderer = getRenderer[action.type];
+                    const visual = renderer(action);
+
+                    // Update start point of next painted line
+                    positions.current[action.id] = action.position.slice() as Coord;
+                    if (base && visual && svg) {
+                        svg.insertBefore(visual, base)
+                    }
+
+                    // Since this is default case in switch, it would be triggered when component set up.
+                    // We need to set data back to local storage to avoid getting lost of data while keep refreshing page
+                    setActions(actions => {
+                        sessionStorage.setItem(id.toString(), JSON.stringify(actions));
+                        return ([...actions, action])
+                    })
+                    break
+                }
+            }
+        }
+    }, [action, id]);
 
     return (
         <div className='Widget'>
@@ -263,33 +299,32 @@ const Screen: FunctionComponent = () => {
                 <div title='Camera' onClick={takePicture} style={{ paddingLeft: '1em' }}>
                     <Camera size={24} color='grey' />
                 </div>
+
+                <div title='Download' onClick={saveAsPng} style={{ paddingLeft: '1em' }}>
+                    <Download size={24} color='grey' />
+                </div>
+
                 <div title='Grid' onClick={toggleGrid} style={{ paddingLeft: '1em' }}>
                     <GridDots size={24} color='grey' />
                 </div>
             </div>
 
-            <svg ref={ref} viewBox={`0 0 ${width + 1} ${height + 1}`} xmlns='http://www.w3.org/2000/svg'>
+            <svg id={`${id}_svgCanvas`} ref={ref} viewBox={`0 0 ${width + 1} ${height + 1}`} xmlns='http://www.w3.org/2000/svg'>
                 <defs>
-                    <pattern id='grid' width='20' height='20' patternUnits='userSpaceOnUse'>
+                    <pattern id={`${id}_grid`} width='20' height='20' patternUnits='userSpaceOnUse'>
                         <path d='M 0,0 L 20,0 M 0,0 L 0,20' stroke='gray' stroke-width='0.3' />
                     </pattern>
                 </defs>
 
                 <rect width='100%' height='100%' fill={`${background}`} />
 
+                <svg id={`${id}_baseline`}></svg>
+
                 {
                     grid ?
-                        <rect width='100%' height='100%' fill='url(#grid)' />
+                        <rect width='100%' height='100%' fill={`url(#${id}_grid)`} />
                         :
                         <></>
-                }
-
-                {
-                    actions?.map((action,) => {
-                        const renderer = getRenderer[action.type];
-
-                        return renderer(action);
-                    })
                 }
 
                 {

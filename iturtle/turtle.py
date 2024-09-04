@@ -56,7 +56,6 @@ class Turtle:
                 "show": self.show,
             },
         }
-        sleep(0.05 * self.screen.DELAY)
 
     def pos(self):
         return (self.x - self.screen.width / 2, self.screen.height / 2 - self.y)
@@ -126,15 +125,6 @@ class Turtle:
         >>> turtle.pendown()
         """
         self.pen = True
-
-    # @overload
-    # def speed(self) -> None: ...
-
-    # @overload
-    # def speed(self, velocity: str) -> None: ...
-
-    # @overload
-    # def speed(self, velocity: int) -> None: ...
 
     def speed(self, velocity=None):
         """
@@ -261,6 +251,7 @@ class Turtle:
         """
         self.bearing = self.bearing - angle
         self._update_state()
+        sleep(0.05)
 
     def lt(self, angle: float):
         """Turn the Turtle num degrees to the left.
@@ -278,6 +269,7 @@ class Turtle:
         """
         self.bearing = self.bearing + angle
         self._update_state()
+        sleep(0.05)
 
     @overload
     def dot(self) -> None: ...
@@ -413,10 +405,7 @@ class Turtle:
         ix, iy = self.pos()
         dx = x - ix
         dy = y - iy
-        if dx or dy:
-            return degrees(atan2(dx, dy)) - 90
-        else:
-            return self.bearing
+        return degrees(atan2(dy, dx))
 
     def ht(self):
         """
