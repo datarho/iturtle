@@ -144,8 +144,8 @@ const Screen: FunctionComponent = () => {
             visual.setAttribute('y1', `${position[1]}`);
             visual.setAttribute('x2', `${action.position[0]}`);
             visual.setAttribute('y2', `${action.position[1]}`);
-            visual.setAttribute('strokeLinecap', 'round');
-            visual.setAttribute('strokeWidth', action.size.toString());
+            visual.setAttribute('stroke-linecap', 'round');
+            visual.setAttribute('stroke-width', action.size.toString());
             visual.setAttribute('stroke', action.color);
 
             positions.current[action.id] = action.position.slice() as Coord;
@@ -161,7 +161,7 @@ const Screen: FunctionComponent = () => {
         visual.setAttribute('cy', `${action.position[1]}`);
         visual.setAttribute('r', `${action.radius}`);
         visual.setAttribute('stroke', `${action.color}`);
-        visual.setAttribute('strokeWidth', '1');
+        visual.setAttribute('stroke-width', '1');
         visual.setAttribute('fill', action.color);
         return visual;
     }
@@ -173,7 +173,7 @@ const Screen: FunctionComponent = () => {
         visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
         visual.setAttribute('d', `M ${position[0]},${position[1]} A ${action.radius},${action.radius}, 0 0 ${action.clockwise} ${action.position[0]},${action.position[1]}`);
         visual.setAttribute('stroke', `${action.color}`);
-        visual.setAttribute('strokeWidth', '1');
+        visual.setAttribute('stroke-width', `${action.size}`);
         visual.setAttribute('fill', 'transparent');
 
         positions.current[action.id] = action.position.slice() as Coord;
