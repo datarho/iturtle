@@ -428,6 +428,8 @@ class Turtle:
         self.show = False
         self._update_state()
 
+        sleep(0.1)
+
     def st(self):
         """
         Make the turtle visible.
