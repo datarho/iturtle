@@ -80,6 +80,10 @@ class Turtle:
             self.screen._add_action(self, ActionType.MOVE_ABSOLUTE)
         self._update_state()
 
+    def onclick(self, callback, remove=False):
+        """Register a callback that will be called on mouse click."""
+        self.screen._mouse_click_callbacks.register_callback(callback, remove= remove)
+
     def clear(self):
         """
         This function is used to delete the turtle’s drawings from the screen. Do not move state
