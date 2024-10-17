@@ -2,7 +2,7 @@ import { WidgetModel } from '@jupyter-widgets/base';
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
 import { Camera, Download, GridDots } from 'tabler-icons-react';
 import { ActionType, Coord, FontSpec, TurtleAction } from './interface';
-import { WidgetModelContext, useModelState } from './store';
+import { WidgetModelContext, useModel, useModelState } from './store';
 import { TurtleState } from './widget';
 
 import '../css/widget.css';
@@ -58,6 +58,15 @@ const Screen: FunctionComponent = () => {
 
     const ref = useRef<SVGSVGElement | null>(null);
     const positions = useRef<Record<string, Coord>>({});
+    const model = useModel();
+    const handleClick=(event:React.MouseEvent<SVGSVGElement, MouseEvent>)=>{
+        const rect = ref.current?.getBoundingClientRect()
+        if(rect && model){
+            const x = (width * (event.clientX - rect.left)) / rect.width - width / 2
+            const y = height / 2 - (height * (event.clientY - rect.top)) / rect.height 
+            model?.send({ event: 'mouse_click', x:x,y:y }, {})
+        }
+    }
 
     useEffect(() => {
         const saved = sessionStorage.getItem(id.toString());
@@ -309,7 +318,14 @@ const Screen: FunctionComponent = () => {
                 </div>
             </div>
 
-            <svg id={`${id}_svgCanvas`} ref={ref} viewBox={`0 0 ${width + 1} ${height + 1}`} xmlns='http://www.w3.org/2000/svg'>
+            <svg 
+                id={`${id}_svgCanvas`} 
+                onClick={(event)=>handleClick(event)}
+                ref={ref} 
+                viewBox={`0 0 ${width + 1} 
+                ${height + 1}`} 
+                xmlns='http://www.w3.org/2000/svg'
+            >
                 <defs>
                     <pattern id={`${id}_grid`} width='20' height='20' patternUnits='userSpaceOnUse'>
                         <path d='M 0,0 L 20,0 M 0,0 L 0,20' stroke='gray' stroke-width='0.3' />

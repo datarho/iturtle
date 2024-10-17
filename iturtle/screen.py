@@ -7,8 +7,9 @@ from enum import Enum
 from time import sleep
 
 from IPython.display import clear_output, display
-from ipywidgets import DOMWidget
-from traitlets import Bool, Dict, Float, Int, Unicode
+from ipywidgets import DOMWidget,CallbackDispatcher
+from traitlets import Bool, Dict, Float, Int, Unicode, Instance
+from datetime import datetime
 
 from .frontend import MODULE_NAME, MODULE_VERSION
 
@@ -63,6 +64,7 @@ class Screen(DOMWidget):
     # We will only sync delta action so that frontend will handle the whole states.
 
     action = Dict().tag(sync=True)
+    _mouse_click_callbacks = Instance(CallbackDispatcher,())
 
     def __init__(self):
         """
@@ -78,6 +80,12 @@ class Screen(DOMWidget):
         self.velocity = 3  # avoid duplicate to speed method
 
         self.turtles = dict()
+        self.on_msg(self._handle_frontend_event)
+
+    def _handle_frontend_event(self, _, content, buffers):
+
+        if content.get("event", "") == "mouse_click":
+            self._mouse_click_callbacks(content["x"], content["y"])
 
     def save(self) -> None:
         clear_output()
