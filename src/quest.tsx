@@ -21,11 +21,7 @@ interface TurtleProps {
 }
 
 const Turtle: FunctionComponent<TurtleProps> = ({ id, state }) => {
-    const [svg, setSvg] = useState<string | null>(null);
     const [url] = useModelState('turtleUrl');
-    const ref = useRef<SVGSVGElement>(null);
-    const [loaded, setLoaded] = useState(false);
-
     const defaultTurtle =
         <svg x={state.x - 15} y={state.y - 15} width='32' height='32' xmlns='http://www.w3.org/2000/svg'>
             <g transform={`rotate(${(-state.bearing + 90) % 360}, 15, 15)`} >
@@ -45,45 +41,13 @@ const Turtle: FunctionComponent<TurtleProps> = ({ id, state }) => {
             </g>
         </svg>
 
-    // Load svg from url
-    useEffect(() => {
-        if (url !== null && url.length > 0) {
-            fetch(url)
-                .then(res => res.text())
-                .then(data => setSvg(data))
-                .catch()
-                .then(() => setLoaded(true))
-        }
-    }, [url]);
-
-    // Set transform attribute in child <g> element to the value we desired.
-    // Scale all size of svg image into 32px width and height
-    useEffect(() => {
-        if (ref.current && loaded) {
-            const height = ref.current.getElementsByTagName('svg')[0].height.baseVal.value;
-            const ratio = 32 / height;
-            const g = ref.current.getElementsByTagName('g');
-
-            if (!g) {
-                return
-            }
-
-            for (let i = 0; i < g.length; i++) {
-                g[i].setAttribute('transform', `scale(${ratio}), rotate(${(-state.bearing) % 360}, 15, 15)`);
-            }
-        }
-    }, [loaded])
-
     return (
         state.show ?
-            url && svg ?
-                <svg
-                    className={'svgInline'}
-                    x={state.x - 10} y={state.y - 10}
-                    width='32px' height='32px'
-                    overflow={'auto'}
-                    dangerouslySetInnerHTML={{ __html: svg }}
-                    ref={ref}
+            url ?
+                <image className={'svgInline'}
+                    href={url} x={state.x - 10} y={state.y - 10}
+                    height={'32px'}
+                    transform={`rotate(${(-state.bearing) % 360}, 15, 15)`}
                 />
                 :
                 defaultTurtle
@@ -96,34 +60,6 @@ const Background: FunctionComponent<{ grid: boolean }> = ({ grid }) => {
     const [id] = useModelState('id');
     const [url] = useModelState('bgUrl');
     const [background] = useModelState('background');
-    const [svg, setSvg] = useState<string | null>(null);
-    const [loaded, setLoaded] = useState<boolean>(false);
-    const doc = document.getElementById('background-svg');
-
-    // Load svg from url
-    useEffect(() => {
-        if (url && url.length > 0) {
-            fetch(url)
-                .then(res => res.text())
-                .then(data => setSvg(data))
-                .catch()
-                .then(() => setLoaded(true))
-        }
-    }, [url]);
-
-    // Imported svg file would have a <g> tag with transform attribute in children element
-    // We should set the transform attribute into empty so that we can scale the image
-    useEffect(() => {
-        if (doc && loaded) {
-            const g = doc.getElementsByTagName('g');
-            if (!g) {
-                return
-            }
-            for (let i = 0; i < g.length; i++) {
-                g[i].setAttribute('transform', '');
-            }
-        }
-    }, [loaded])
 
     const defaultStyle = () =>
         <>
@@ -147,15 +83,11 @@ const Background: FunctionComponent<{ grid: boolean }> = ({ grid }) => {
         <>
             {
                 url ?
-                    svg ?
-                        <svg
-                            id={'background-svg'}
-                            className={'svgInline'}
-                            transform='scale(0.2)'
-                            dangerouslySetInnerHTML={{ __html: svg }}
-                        />
-                        :
-                        <></>
+                    <image
+                        id={'background-svg'}
+                        className={'svgInline'}
+                        href={url}
+                    />
                     :
                     defaultStyle()
             }
