@@ -47,28 +47,29 @@ const Turtle: FunctionComponent<TurtleProps> = ({ id, state }) => {
 
     // Load svg from url
     useEffect(() => {
-        if (url !== null && url.length > 0)
+        if (url !== null && url.length > 0) {
             fetch(url)
                 .then(res => res.text())
                 .then(data => setSvg(data))
                 .catch()
                 .then(() => setLoaded(true))
+        }
     }, [url]);
 
     // Set transform attribute in child <g> element to the value we desired.
     // Scale all size of svg image into 32px width and height
     useEffect(() => {
         if (ref.current && loaded) {
-            const height = ref.current.getElementsByTagName("svg")[0].height.baseVal.value;
+            const height = ref.current.getElementsByTagName('svg')[0].height.baseVal.value;
             const ratio = 32 / height;
-            const g = ref.current.getElementsByTagName("g");
+            const g = ref.current.getElementsByTagName('g');
 
             if (!g) {
                 return
             }
 
             for (let i = 0; i < g.length; i++) {
-                g[i].setAttribute("transform", `scale(${ratio}), rotate(${(-state.bearing) % 360}, 15, 15)`);
+                g[i].setAttribute('transform', `scale(${ratio}), rotate(${(-state.bearing) % 360}, 15, 15)`);
             }
         }
     }, [loaded])
@@ -80,7 +81,7 @@ const Turtle: FunctionComponent<TurtleProps> = ({ id, state }) => {
                     className={`svgInline`}
                     x={state.x - 10} y={state.y - 10}
                     width='32px' height='32px'
-                    overflow={"auto"}
+                    overflow={'auto'}
                     dangerouslySetInnerHTML={{ __html: svg }}
                     ref={ref}
                 />
@@ -97,28 +98,29 @@ const Background: FunctionComponent<{ grid: boolean }> = ({ grid }) => {
     const [background] = useModelState('background');
     const [svg, setSvg] = useState<string | null>(null);
     const [loaded, setLoaded] = useState<boolean>(false);
-    const doc = document.getElementById("background-svg");
+    const doc = document.getElementById('background-svg');
 
     // Load svg from url
     useEffect(() => {
-        if (url && url.length > 0)
+        if (url && url.length > 0) {
             fetch(url)
                 .then(res => res.text())
                 .then(data => setSvg(data))
                 .catch()
                 .then(() => setLoaded(true))
+        }
     }, [url]);
 
     // Imported svg file would have a <g> tag with transform attribute in children element
     // We should set the transform attribute into empty so that we can scale the image
     useEffect(() => {
         if (doc && loaded) {
-            const g = doc.getElementsByTagName("g");
+            const g = doc.getElementsByTagName('g');
             if (!g) {
                 return
             }
             for (let i = 0; i < g.length; i++) {
-                g[i].setAttribute("transform", "");
+                g[i].setAttribute('transform', '');
             }
         }
     }, [loaded])
@@ -147,7 +149,7 @@ const Background: FunctionComponent<{ grid: boolean }> = ({ grid }) => {
                 url ?
                     svg ?
                         <svg
-                            id={"background-svg"}
+                            id={'background-svg'}
                             className={`svgInline`}
                             transform='scale(0.2)'
                             dangerouslySetInnerHTML={{ __html: svg }}
