@@ -8,7 +8,7 @@ from time import sleep
 
 from IPython.display import clear_output, display
 from ipywidgets import DOMWidget
-from traitlets import Bool, Dict, Float, Int, Unicode, observe
+from traitlets import Bool, Dict, Float, Int, Unicode
 
 from .frontend import MODULE_NAME, MODULE_VERSION
 
