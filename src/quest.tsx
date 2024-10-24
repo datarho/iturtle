@@ -425,14 +425,13 @@ const Screen: FunctionComponent = () => {
 
             <svg id={`${id}_svgCanvas`} ref={ref} viewBox={`0 0 ${width + 1} ${height + 1}`} xmlns='http://www.w3.org/2000/svg'>
                 <Background grid={grid} />
-
-                <svg id={`${id}_baseline`}></svg>
-
                 {
                     Object.entries(turtles).map(([id, state]) =>
                         <Turtle id={id} state={state} />
                     )
                 }
+
+                <svg id={`${id}_baseline`}></svg>
             </svg>
         </div>
     );
