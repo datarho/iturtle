@@ -4,7 +4,6 @@ from typing import Optional, Tuple, overload
 from .screen import ActionType, Screen
 from time import sleep
 
-
 class Turtle:
     MODE = "standard"
 
@@ -538,3 +537,6 @@ class Turtle:
             Turtle.MODE = mode
         self._update_state()
         return Turtle.MODE
+
+    def shape(self, src: str= ""):
+        self.screen.turtleUrl = src
