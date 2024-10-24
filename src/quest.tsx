@@ -78,7 +78,7 @@ const Turtle: FunctionComponent<TurtleProps> = ({ id, state }) => {
         state.show ?
             url && svg ?
                 <svg
-                    className={`svgInline`}
+                    className={'svgInline'}
                     x={state.x - 10} y={state.y - 10}
                     width='32px' height='32px'
                     overflow={'auto'}
@@ -150,7 +150,7 @@ const Background: FunctionComponent<{ grid: boolean }> = ({ grid }) => {
                     svg ?
                         <svg
                             id={'background-svg'}
-                            className={`svgInline`}
+                            className={'svgInline'}
                             transform='scale(0.2)'
                             dangerouslySetInnerHTML={{ __html: svg }}
                         />
