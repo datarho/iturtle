@@ -8,7 +8,7 @@ from time import sleep
 
 from IPython.display import clear_output, display
 from ipywidgets import DOMWidget
-from traitlets import Bool, Dict, Float, Int, Unicode
+from traitlets import Bool, Dict, Float, Int, Unicode, observe
 
 from .frontend import MODULE_NAME, MODULE_VERSION
 
@@ -52,6 +52,8 @@ class Screen(DOMWidget):
 
     width = Int(WIDTH).tag(sync=True)
     height = Int(HEIGHT).tag(sync=True)
+    bgUrl = Unicode("").tag(sync=True)
+    turtleUrl = Unicode("").tag(sync=True)
     background = Unicode("white").tag(sync=True)
     id = Int(0).tag(sync=True)
 
@@ -126,3 +128,6 @@ class Screen(DOMWidget):
 
     def delay(self, d: int) -> None:
         Screen.DELAY = d
+
+    def bgpic(self, src: str):
+        self.bgUrl = src
