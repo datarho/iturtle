@@ -31,6 +31,8 @@ export interface WidgetModelState {
     turtles: Record<string, TurtleState>;
     action: TurtleAction;
     show: boolean;
+    bgUrl: string | null;
+    turtleUrl: string | null;
 }
 
 export class TurtleModel extends DOMWidgetModel {
