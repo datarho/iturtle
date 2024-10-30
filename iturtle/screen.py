@@ -53,7 +53,6 @@ class Screen(DOMWidget):
     width = Int(WIDTH).tag(sync=True)
     height = Int(HEIGHT).tag(sync=True)
     bgUrl = Unicode("").tag(sync=True)
-    turtleUrl = Unicode("").tag(sync=True)
     background = Unicode("white").tag(sync=True)
     id = Int(0).tag(sync=True)
 

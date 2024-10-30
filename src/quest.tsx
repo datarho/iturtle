@@ -20,8 +20,7 @@ interface TurtleProps {
     state: TurtleState;
 }
 
-const Turtle: FunctionComponent<TurtleProps> = ({ id, state }) => {
-    const [url] = useModelState('turtleUrl');
+const Turtle: FunctionComponent<TurtleProps> = ({ state }) => {
     const defaultTurtle =
         <svg x={state.x - 15} y={state.y - 15} width='32' height='32' xmlns='http://www.w3.org/2000/svg'>
             <g transform={`rotate(${(-state.bearing + 90) % 360}, 15, 15)`} >
@@ -43,9 +42,9 @@ const Turtle: FunctionComponent<TurtleProps> = ({ id, state }) => {
 
     return (
         state.show ?
-            url ?
+            state.shape ?
                 <image className={'svgInline'}
-                    href={url} x={state.x - 10} y={state.y - 10}
+                    href={state.shape} x={state.x - 10} y={state.y - 10}
                     height={'32px'}
                     transform={`rotate(${(-state.bearing) % 360}, 15, 15)`}
                 />
