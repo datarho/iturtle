@@ -12,6 +12,7 @@ export interface TurtleState {
     y: number;
     bearing: number;
     show: boolean;
+    shape: string
 }
 
 export interface WidgetModelState {
@@ -32,7 +33,6 @@ export interface WidgetModelState {
     action: TurtleAction;
     show: boolean;
     bgUrl: string | null;
-    turtleUrl: string | null;
 }
 
 export class TurtleModel extends DOMWidgetModel {

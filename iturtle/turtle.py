@@ -27,6 +27,7 @@ class Turtle:
         self.radius = 0
         self.clockwise = 1
         self.media = None
+        self.turtleShape = ""
 
         # Text related variable.
 
@@ -53,6 +54,7 @@ class Turtle:
                 "y": self.y,
                 "bearing": self.bearing,
                 "show": self.show,
+                "shape": self.turtleShape
             },
         }
 
@@ -539,4 +541,5 @@ class Turtle:
         return Turtle.MODE
 
     def shape(self, src: str= ""):
-        self.screen.turtleUrl = src
+        self.turtleShape = src
+        self._update_state()
