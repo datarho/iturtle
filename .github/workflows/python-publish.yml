@@ -1,0 +1,59 @@
+# This workflow will upload a Python Package using Twine when a release is created
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-package-registries
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Upload Python Package
+
+# This workflow will upload a Python Package to PyPI when a release is published
+on:
+  release:
+    types: [published]  # Trigger the workflow when a release is published
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # Run the job on the latest Ubuntu runner
+    environment:
+      name: pypi  # Specify the environment name
+      url: https://pypi.org/p/iturtle  # Specify the environment URL
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+      
+    steps:
+    - uses: actions/checkout@v4  # Checkout the repository
+    - name: Set up Python
+      uses: actions/setup-python@v3  # Set up Python environment
+      with:
+        python-version: '3.10'  # Specify the Python version
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip  # Upgrade pip
+        pip install build twine  # Install build and twine packages
+
+    - name: Extract tag name
+      id: extract_tag
+      run: echo "::set-output name=tag_name::${GITHUB_REF#refs/tags/}"  # Extract the tag name from the GitHub ref
+
+    - name: Update version.py
+      run: |
+         echo "version_info = $(echo ${{ steps.extract_tag.outputs.tag_name }} | tr -d 'v' | tr '.' ', ' | sed 's/^/(/; s/$/)/')" > iturtle/version.py  # Update version_info in version.py
+         echo "__version__ = '.'.join(map(str, version_info))" >> iturtle/version.py  # Update __version__ in version.py
+
+    - name: Print version_info and __version__
+      run: cat iturtle/version.py  # Print the content of version.py to verify the updates
+      
+    - name: Build package
+      run: |
+        python -m build  # Build the package
+    
+    - name: Publish package
+      env:
+        TWINE_USERNAME: __token__  # Set the Twine username to __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}  # Set the Twine password to the PyPI API token stored in GitHub Secrets
+      run: |
+        rm dist/index*  # Remove any index files from the dist directory
+        twine upload dist/* --verbose  # Upload the package to PyPI with verbose output
