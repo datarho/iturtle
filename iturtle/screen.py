@@ -75,6 +75,9 @@ class Screen(DOMWidget):
         super(Screen, self).__init__()
 
         display(self)
+
+        sleep(0.5) # leave a time window for data sync
+        
         self.id = id(self)
         self.velocity = 3  # avoid duplicate to speed method
 
