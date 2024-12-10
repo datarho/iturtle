@@ -30,7 +30,7 @@ export interface WidgetModelState {
     size: number;
     bearing: number;
     turtles: Record<string, TurtleState>;
-    action: TurtleAction;
+    actions: TurtleAction[];
     show: boolean;
     bgUrl: string | null;
 }
