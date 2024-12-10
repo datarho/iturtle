@@ -11,18 +11,19 @@ export enum ActionType {
     CIRCLE = 'C',
     SOUND = 'S',
     CLEAR = 'CLR',
+    UPDATE_STATE = 'UPDATE_STATE',
 }
 
 export interface TurtleAction {
     id: string;             // turtle id
     type: ActionType;
     pen: number;
-    color: string;
+    pen_color: string;
     position: Coord;
     change: boolean;
     velocity: number;
     distance: number;
-    size: number;
+    pen_size: number;
     radius: number;
     clockwise: number;
     text?: string;

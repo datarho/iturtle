@@ -42,7 +42,7 @@ const Turtle: FunctionComponent<TurtleProps> = ({ state }) => {
 
     return (
         state.show ?
-            state.shape ?
+            state.shape !== "" ?
                 <image className={'svgInline'}
                     href={state.shape} x={state.x - 10} y={state.y - 10}
                     height={'32px'}
@@ -98,10 +98,11 @@ const Screen: FunctionComponent = () => {
     const [id] = useModelState('id');
     const [width] = useModelState('width');
     const [height] = useModelState('height');
-    const [action] = useModelState('action');
-    const [turtles] = useModelState('turtles');
+    const [actions] = useModelState('actions');
+    const [turtles, setTurtles] = useState<{ [key: string]: TurtleState }>({});
 
-    const [actions, setActions] = useState<TurtleAction[]>([]);
+    const [actionsState, setActionsState] = useState<TurtleAction[]>([]);
+    console.log(actionsState)
     const [grid, setGrid] = useState(true);
     const ref = useRef<SVGSVGElement | null>(null);
     const positions = useRef<Record<string, Coord>>({});
@@ -123,7 +124,7 @@ const Screen: FunctionComponent = () => {
                 }
             })
 
-            setActions(savedData);
+            setActionsState(savedData);
         }
     }, [id]);
 
@@ -177,6 +178,10 @@ const Screen: FunctionComponent = () => {
         return undefined;
     }
 
+    const updateState = (action: TurtleAction): undefined => {
+        return undefined
+    }
+
     const moveRelative = (action: TurtleAction): undefined => {
         return undefined;
     }
@@ -192,8 +197,8 @@ const Screen: FunctionComponent = () => {
             visual.setAttribute('x2', `${action.position[0]}`);
             visual.setAttribute('y2', `${action.position[1]}`);
             visual.setAttribute('stroke-linecap', 'round');
-            visual.setAttribute('stroke-width', action.size.toString());
-            visual.setAttribute('stroke', action.color);
+            visual.setAttribute('stroke-width', action.pen_size.toString());
+            visual.setAttribute('stroke', action.pen_color);
 
             positions.current[action.id] = action.position.slice() as Coord;
 
@@ -207,9 +212,9 @@ const Screen: FunctionComponent = () => {
         visual.setAttribute('cx', `${action.position[0]}`);
         visual.setAttribute('cy', `${action.position[1]}`);
         visual.setAttribute('r', `${action.radius}`);
-        visual.setAttribute('stroke', `${action.color}`);
+        visual.setAttribute('stroke', `${action.pen_color}`);
         visual.setAttribute('stroke-width', '1');
-        visual.setAttribute('fill', action.color);
+        visual.setAttribute('fill', action.pen_color);
         return visual;
     }
 
@@ -219,8 +224,8 @@ const Screen: FunctionComponent = () => {
         const visual = document.createElementNS(SVG_NS, 'path');
         visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
         visual.setAttribute('d', `M ${position[0]},${position[1]} A ${action.radius},${action.radius}, 0 0 ${action.clockwise} ${action.position[0]},${action.position[1]}`);
-        visual.setAttribute('stroke', `${action.color}`);
-        visual.setAttribute('stroke-width', `${action.size}`);
+        visual.setAttribute('stroke', `${action.pen_color}`);
+        visual.setAttribute('stroke-width', `${action.pen_size}`);
         visual.setAttribute('fill', 'transparent');
 
         positions.current[action.id] = action.position.slice() as Coord;
@@ -257,6 +262,7 @@ const Screen: FunctionComponent = () => {
         [ActionType.CIRCLE]: drawCircle,
         [ActionType.SOUND]: playSound,
         [ActionType.CLEAR]: clear,
+        [ActionType.UPDATE_STATE]: updateState,
     }
 
     const takePicture = () => {
@@ -288,57 +294,69 @@ const Screen: FunctionComponent = () => {
     }
 
     useEffect(() => {
-        if (id) {
+        if (id && actions) {
             // As model state now only provides addendum action, we'll need to accumulate the actions whenever
             // there is a new one. However, we'll need to persist existing actions before the change, as we'll
             // load these actions during mount with the latest action syncing from the kernel :-)
-
-            if (Object.keys(action).length === 0) {
+            console.log("action-2", actions)
+            if (Object.keys(actions).length === 0) {
                 return;
             }
-            switch (action.type) {
-                case ActionType.SOUND:
-                    playSound(action);
-                    break
+            actions.forEach((action) => {
+                switch (action.type) {
+                    case ActionType.SOUND:
+                        playSound(action);
+                        break
 
-                case ActionType.CLEAR: {
-                    // Erasing all paths with same id of turtle
-                    const svg = document.getElementById(`${id}_svgCanvas`);
-                    const elementsToRemove = svg?.querySelectorAll(`.class${action.id}`);
-                    elementsToRemove?.forEach((element) => {
-                        svg?.removeChild(element)
-                    })
+                    case ActionType.CLEAR: {
+                        // Erasing all paths with same id of turtle
+                        const svg = document.getElementById(`${id}_svgCanvas`);
+                        const elementsToRemove = svg?.querySelectorAll(`.class${action.id}`);
+                        elementsToRemove?.forEach((element) => {
+                            svg?.removeChild(element)
+                        })
 
-                    const t = actions.filter((tt) => tt.id !== action.id);
-                    sessionStorage.setItem(id.toString(), JSON.stringify(t));
-                    setActions(t)
-                    break
-                }
-
-                default: {
-                    // We add ${id} into id of svg element to prevent conflicts of svg background in different tabs or cells
-                    const svg = document.getElementById(`${id}_svgCanvas`);
-                    const base = document.getElementById(`${id}_baseline`);
-                    const renderer = getRenderer[action.type];
-                    const visual = renderer(action);
-
-                    // Update start point of next painted line
-                    positions.current[action.id] = action.position.slice() as Coord;
-                    if (base && visual && svg) {
-                        svg.insertBefore(visual, base)
+                        const t = actions.filter((tt: TurtleAction) => tt.id !== action.id);
+                        sessionStorage.setItem(id.toString(), JSON.stringify(t));
+                        setActionsState(t)
+                        break
+                    }
+                    case ActionType.UPDATE_STATE: {
+                        const turtle = { [action.id]: ({ ...action } as unknown as TurtleState) }
+                        console.log("turtle", turtle)
+                        setTurtles(turtle)
+                        break
                     }
 
-                    // Since this is default case in switch, it would be triggered when component set up.
-                    // We need to set data back to local storage to avoid getting lost of data while keep refreshing page
-                    setActions(actions => {
-                        sessionStorage.setItem(id.toString(), JSON.stringify(actions));
-                        return ([...actions, action])
-                    })
-                    break
+                    default: {
+                        // We add ${id} into id of svg element to prevent conflicts of svg background in different tabs or cells
+                        const svg = document.getElementById(`${id}_svgCanvas`);
+                        const base = document.getElementById(`${id}_baseline`);
+                        const renderer = getRenderer[action.type];
+                        const visual = renderer(action);
+                        console.log("ActionType", action.type)
+                        console.log("visual", visual)
+                        console.log("svg", svg)
+                        console.log("base", base)
+
+                        // Update start point of next painted line
+                        positions.current[action.id] = action.position.slice() as Coord;
+                        if (base && visual && svg) {
+                            svg.insertBefore(visual, base)
+                        }
+
+                        // Since this is default case in switch, it would be triggered when component set up.
+                        // We need to set data back to local storage to avoid getting lost of data while keep refreshing page
+                        setActionsState(actions => {
+                            sessionStorage.setItem(id.toString(), JSON.stringify(actions));
+                            return ([...actions, action])
+                        })
+                        break
+                    }
                 }
-            }
+            })
         }
-    }, [action, id]);
+    }, [actions, id]);
 
     return (
         <div className='Widget'>
