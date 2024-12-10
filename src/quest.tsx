@@ -324,7 +324,11 @@ const Screen: FunctionComponent = () => {
                     case ActionType.UPDATE_STATE: {
                         const turtle = { [action.id]: ({ ...action } as unknown as TurtleState) }
                         console.log("turtle", turtle)
-                        setTurtles(turtle)
+                        setTurtles(oldTurtles => {
+                            const tempo = oldTurtles
+                            tempo[action.id] = { ...action } as unknown as TurtleState
+                            return tempo
+                        })
                         break
                     }
 
