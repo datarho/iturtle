@@ -6,7 +6,7 @@ from .frontend import MODULE_NAME, MODULE_VERSION
 from IPython.display import clear_output, display
 from enum import Enum
 from ipywidgets import DOMWidget
-from traitlets import Bool, Dict, Float, Int, List, Unicode
+from traitlets import Int, List, Unicode
 
 class ActionType(str, Enum):
   MOVE_ABSOLUTE = 'M'
@@ -47,7 +47,7 @@ class Screen(DOMWidget):
     time.sleep(0.1)
     self.id = str(uuid.uuid4())
     
-    self.todo_actions = []
+    self.todo_actions = {}
     
     self.interval = 1000 / framerate
     self.stop_event = threading.Event()
@@ -78,7 +78,11 @@ class Screen(DOMWidget):
   def add_action(self, action):
     try:
       self.lock.acquire()
-      self.todo_actions.append(action)
+
+      _id = action['id']
+      if _id not in self.todo_actions:
+        self.todo_actions[_id] = []
+      self.todo_actions[_id].append(action)
     finally:
       self.lock.release()
       
@@ -98,9 +102,10 @@ class Screen(DOMWidget):
     try:
       self.lock.acquire()
       
-      for i in range(len(self.todo_actions)):
-        _actions.append(self.todo_actions.pop(0))
-        # 简化forward的处理，先瞬移再说
+      # 简化forward的处理，先瞬移再说  
+      for v in self.todo_actions.values():
+        for i in range(len(v)):
+          _actions.append(v.pop(0))
     finally:
       self.lock.release()
 
