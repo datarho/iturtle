@@ -24,8 +24,8 @@ class Turtle:
     self.bearing = 90 if Turtle.MODE == Mode.LOGO else 0
     self.show = True
     self.pen = True
-    self.pen_color = 'black'
-    self.pen_size = 1
+    self.pencolor = 'black'
+    self.pensize = 1
     self.distance = 0
     self.radius = 0
     self.clockwise = 1
@@ -60,8 +60,8 @@ class Turtle:
       'speed': self.speed,
       'media': self.media,
       'pen': self.pen,
-      'pen_color': self.pen_color,
-      'pen_size': self.pen_size,
+      'pencolor': self.pencolor,
+      'pensize': self.pensize,
       'distance': abs(self.distance),
       'position': (self.x, self.y),
       'radius': self.radius,
@@ -155,25 +155,25 @@ class Turtle:
     self.left(alpha)
     
   def dot(self, size, *color):
-    tmp_color = self.pen_color
+    tmp_color = self.pencolor
     
     self.distance = 0
-    self.radius = (size / 2) if size else max((self.pen_size + 4) / 2, self.pen_size)
+    self.radius = (size / 2) if size else max((self.pensize + 4) / 2, self.pensize)
     
     if len(color) == 3:
       r = self._clamp(color[0], 0, 255)
       g = self._clamp(color[1], 0, 255)
       b = self._clamp(color[2], 0, 255)
       
-      self.pen_color = '#{0:02x}{1:02x}{2:02x}'.format(r, g, b)
+      self.pencolor = '#{0:02x}{1:02x}{2:02x}'.format(r, g, b)
     else:
       if type(color[0]) is str:
-        self.pen_color = color[0]
+        self.pencolor = color[0]
       else:
-        self.pen_color = '#{0:02x}{1:02x}{2:02x}'.format(*color[0])
+        self.pencolor = '#{0:02x}{1:02x}{2:02x}'.format(*color[0])
         
     self._add_action(self, ActionType.DRAW_DOT)
-    self.pen_color = tmp_color
+    self.pencolor = tmp_color
         
   def heading(self) -> float:
     self.bearing = (self.bearing % 360 + 360) % 360

@@ -88,8 +88,6 @@ dependencies:
   - pure_eval=0.2.2
   - pycparser=2.21
   - pygments=2.15.1
-  - pyobjc-core=9.1.1
-  - pyobjc-framework-cocoa=9.1.1
   - pyopenssl=23.1.1
   - pyrsistent=0.19.3
   - pysocks=1.7.1
