@@ -42,6 +42,8 @@ class Screen(DOMWidget):
   def __init__(self, framerate=SCREEN_FRAMERATE):
     super(Screen, self).__init__()
     
+    self._tracer = 1 # 0 means manual mode, others as auto mode
+    
     display(self)
     
     time.sleep(0.1)
@@ -54,7 +56,8 @@ class Screen(DOMWidget):
     self.lock = threading.Lock()
     self.thread = None
     
-    self.start()
+    if self._tracer > 0:
+      self.start()
     
   def start(self):
     if (not self.thread) or (not self.thread.is_alive()):
@@ -66,7 +69,19 @@ class Screen(DOMWidget):
     if self.thread:
       self.stop_event.set()
       self.thread.join()
-      self.lock.release()
+      if self.lock.locked():
+        self.lock.release()
+      
+  def tracer(self, n):
+    self.tracer = n
+    
+    if self.tracer > 0:
+      self.start()
+    else:
+      self.stop()
+      
+  def update(self):
+    self.actions = self._build_actions()
       
   def bgpic(self, src):
     self.bgUrl = src
