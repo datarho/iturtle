@@ -197,8 +197,8 @@ const Screen: FunctionComponent = () => {
             visual.setAttribute('x2', `${action.position[0]}`);
             visual.setAttribute('y2', `${action.position[1]}`);
             visual.setAttribute('stroke-linecap', 'round');
-            visual.setAttribute('stroke-width', action.pen_size.toString());
-            visual.setAttribute('stroke', action.pen_color);
+            visual.setAttribute('stroke-width', action.pensize.toString());
+            visual.setAttribute('stroke', action.pencolor);
 
             positions.current[action.id] = action.position.slice() as Coord;
 
@@ -212,9 +212,9 @@ const Screen: FunctionComponent = () => {
         visual.setAttribute('cx', `${action.position[0]}`);
         visual.setAttribute('cy', `${action.position[1]}`);
         visual.setAttribute('r', `${action.radius}`);
-        visual.setAttribute('stroke', `${action.pen_color}`);
+        visual.setAttribute('stroke', `${action.pencolor}`);
         visual.setAttribute('stroke-width', '1');
-        visual.setAttribute('fill', action.pen_color);
+        visual.setAttribute('fill', action.pencolor);
         return visual;
     }
 
@@ -224,8 +224,8 @@ const Screen: FunctionComponent = () => {
         const visual = document.createElementNS(SVG_NS, 'path');
         visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
         visual.setAttribute('d', `M ${position[0]},${position[1]} A ${action.radius},${action.radius}, 0 0 ${action.clockwise} ${action.position[0]},${action.position[1]}`);
-        visual.setAttribute('stroke', `${action.pen_color}`);
-        visual.setAttribute('stroke-width', `${action.pen_size}`);
+        visual.setAttribute('stroke', `${action.pencolor}`);
+        visual.setAttribute('stroke-width', `${action.pensize}`);
         visual.setAttribute('fill', 'transparent');
 
         positions.current[action.id] = action.position.slice() as Coord;
@@ -362,8 +362,12 @@ const Screen: FunctionComponent = () => {
         }
     }, [actions, id]);
 
+    const handleKeyDown = (event: any) => {
+        // TODO
+    };
+
     return (
-        <div className='Widget'>
+        <div className='Widget' tabIndex={0} onKeyDown={handleKeyDown} >
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <div title='Camera' onClick={takePicture} style={{ paddingLeft: '1em' }}>
                     <Camera size={24} color='grey' />

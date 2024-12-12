@@ -18,12 +18,12 @@ export interface TurtleAction {
     id: string;             // turtle id
     type: ActionType;
     pen: number;
-    pen_color: string;
+    pencolor: string;
     position: Coord;
     change: boolean;
     velocity: number;
     distance: number;
-    pen_size: number;
+    pensize: number;
     radius: number;
     clockwise: number;
     text?: string;

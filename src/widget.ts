@@ -23,7 +23,7 @@ export interface WidgetModelState {
     _view_name: string;
     _view_module_version: string;
     _view_count: number;
-    id: number;
+    id: string;
     width: number;
     height: number;
     background: string;
