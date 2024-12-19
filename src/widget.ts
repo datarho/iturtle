@@ -8,11 +8,13 @@ import { TurtleAction } from './interface';
 import '../css/widget.css';
 
 export interface TurtleState {
-    x: number;
-    y: number;
-    bearing: number;
+    position: number[];
+    heading: number;
     show: boolean;
-    shape: string
+    shape: string;
+    pencolor:string;
+    penoutlinewidth: number;
+    penstretchfactor: number[];
 }
 
 export interface WidgetModelState {
@@ -23,16 +25,20 @@ export interface WidgetModelState {
     _view_name: string;
     _view_module_version: string;
     _view_count: number;
-    id: number;
-    width: number;
-    height: number;
+    // Canvas properties
     background: string;
-    size: number;
-    bearing: number;
-    turtles: Record<string, TurtleState>;
-    actions: TurtleAction[];
-    show: boolean;
     bgUrl: string | null;
+    height: number;
+    width: number;
+
+    // Turtle control properties
+    actions: TurtleAction[];
+    bearing: number;
+    id: string;
+    key: string;
+    show: boolean;
+    size: number;
+    turtles: Record<string, TurtleState>;
 }
 
 export class TurtleModel extends DOMWidgetModel {

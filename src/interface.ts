@@ -1,3 +1,6 @@
+import { WidgetModel } from "@jupyter-widgets/base";
+import { TurtleState } from "./widget";
+
 export type FontSpec = [family: string, size: number, weight: string];
 
 export type Coord = [x: number, y: number]
@@ -18,16 +21,28 @@ export interface TurtleAction {
     id: string;             // turtle id
     type: ActionType;
     pen: number;
-    pen_color: string;
+    pencolor: string;
     position: Coord;
     change: boolean;
     velocity: number;
     distance: number;
-    pen_size: number;
+    pensize: number;
     radius: number;
     clockwise: number;
     text?: string;
     font?: FontSpec;
     align?: string;
     media?: string;
+    key?: string;
+    penstretchfactor?: number[];
+    penoutlinewidth?: number;
+}
+
+export interface TurtleProps {
+    id: string;
+    state: TurtleState;
+}
+
+export interface WidgetProps {
+    model: WidgetModel;
 }
