@@ -30,4 +30,5 @@ export interface TurtleAction {
     font?: FontSpec;
     align?: string;
     media?: string;
+    key?: string
 }

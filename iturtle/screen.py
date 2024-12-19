@@ -4,26 +4,17 @@ import uuid
 
 from .frontend import MODULE_NAME, MODULE_VERSION
 from IPython.display import clear_output, display
-from enum import Enum
 from ipywidgets import DOMWidget
-from traitlets import Int, List, Unicode
+from traitlets import HasTraits, Int, List, Unicode, observe
 
-class ActionType(str, Enum):
-  MOVE_ABSOLUTE = 'M'
-  MOVE_RELATIVE = 'm'
-  LINE_ABSOLUTE = 'L'
-  DRAW_DOT = 'D'
-  WRITE_TEXT = 'W'
-  CIRCLE = 'C'
-  SOUND = 'S'
-  CLEAR = 'CLR'
-  UPDATE_STATE= 'UPDATE_STATE'
-
-SCREEN_FRAMERATE = 10
+SCREEN_FRAMERATE = 15
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 500
+DELAY = 2
+# SCREEN_WIDTH = 500
+# SCREEN_HEIGHT = 800
 
-class Screen(DOMWidget):
+class Screen(DOMWidget, HasTraits):
   _model_name = Unicode('TurtleModel').tag(sync=True)
   _model_module = Unicode(MODULE_NAME).tag(sync=True)
   _model_module_version = Unicode(MODULE_VERSION).tag(sync=True)
@@ -34,15 +25,20 @@ class Screen(DOMWidget):
   id = Unicode('').tag(sync=True)
   width = Int(SCREEN_WIDTH).tag(sync=True)
   height = Int(SCREEN_HEIGHT).tag(sync=True)
+  delay = Int(DELAY).tag(sync=True)
   bgUrl = Unicode("").tag(sync=True)
   background = Unicode("white").tag(sync=True)
   
+  key = Unicode('').tag(sync=True)
   actions = List([]).tag(sync=True)
   
   def __init__(self, framerate=SCREEN_FRAMERATE):
     super(Screen, self).__init__()
     
     self._tracer = 1 # 0 means manual mode, others as auto mode
+    self.curr_key = None
+    self._on_keys = {}
+    self._framerate = SCREEN_FRAMERATE
     
     display(self)
     
@@ -51,6 +47,9 @@ class Screen(DOMWidget):
     
     self.todo_actions = {}
     
+    self._main_loop = None
+    
+    
     self.interval = 1000 / framerate
     self.stop_event = threading.Event()
     self.lock = threading.Lock()
@@ -58,11 +57,15 @@ class Screen(DOMWidget):
     
     if self._tracer > 0:
       self.start()
+
+  def setup(self, width, height):
+      self.width = width
+      self.height = height
     
-  def start(self):
+  def start(self, main_loop=None):
     if (not self.thread) or (not self.thread.is_alive()):
       self.stop_event.clear()
-      self.thread = threading.Thread(target=self._run)
+      self.thread = threading.Thread(target=main_loop if main_loop else self._run)
       self.thread.start()
 
   def stop(self):
@@ -73,15 +76,26 @@ class Screen(DOMWidget):
         self.lock.release()
       
   def tracer(self, n):
-    self.tracer = n
+    self._tracer = n
     
-    if self.tracer > 0:
+    if self._tracer > 0:
       self.start()
     else:
       self.stop()
       
   def update(self):
-    self.actions = self._build_actions()
+    if self._tracer == 0:
+      self.actions = self._build_actions()
+      
+  def bgcolor(self, *args): # TODO: move this to screen
+    if len(args) == 3:
+      r = self._clamp(args[0], 0, 255)
+      g = self._clamp(args[1], 0, 255)
+      b = self._clamp(args[2], 0, 255)
+
+      self.background = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
+    elif len(args) == 1:
+      self.background = args[0]
       
   def bgpic(self, src):
     self.bgUrl = src
@@ -89,6 +103,9 @@ class Screen(DOMWidget):
   def save(self):
     clear_output()
     display(self)
+    
+  def onkeypress(self, fn, key):
+    self._on_keys[key] = fn
       
   def add_action(self, action):
     try:
@@ -117,11 +134,20 @@ class Screen(DOMWidget):
     try:
       self.lock.acquire()
       
-      # 简化forward的处理，先瞬移再说  
+      # 简化处理，先瞬移再说  
       for v in self.todo_actions.values():
-        for i in range(len(v)):
+        for _ in range(len(v)):
           _actions.append(v.pop(0))
     finally:
       self.lock.release()
 
     return _actions
+  
+  @observe('key')
+  def on_key_change(self, _):
+    self.curr_key = self.key
+    
+    if self.curr_key in self._on_keys:
+      (self._on_keys[self.curr_key])()
+    
+    self.curr_key = None

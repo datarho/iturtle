@@ -22,8 +22,8 @@ interface TurtleProps {
 
 const Turtle: FunctionComponent<TurtleProps> = ({ state }) => {
     const defaultTurtle =
-        <svg x={state.x - 15} y={state.y - 15} width='32' height='32' xmlns='http://www.w3.org/2000/svg'>
-            <g transform={`rotate(${(-state.bearing + 90) % 360}, 15, 15)`} >
+        <svg x={state.position[0] - 15} y={state.position[1] - 15} width='32' height='32' xmlns='http://www.w3.org/2000/svg'>
+            <g transform={`rotate(${(-state.heading + 90) % 360}, 15, 15)`} >
                 <path d='M16 0.248374C13.9097 0.248374 12.2153 1.9429 12.2153 4.03313L12.2153 7.81788C12.2153 9.90811 13.9097 11.6026 16 11.6026 18.0904 11.6026 19.7848 9.90811 19.7848 7.81788L19.7848 4.03313C19.7848 1.9429 18.0903 0.248374 16 0.248374Z' fill='#9DD7F5' />
                 <path d='M19.7848 7.81788C19.7848 9.90811 18.0904 11.6026 16 11.6026L16 11.6026C16 7.9125 16 4.03313 16 0.248374L16 0.248374C18.0904 0.248374 19.7848 1.9429 19.7848 4.03313L19.7848 7.81788Z' fill='#78B9EB' />
                 <path d='M10.3323 11.6026 5.67713 11.6026C2.54165 11.6026 0 14.1444 0 17.2798L10.3323 17.2798 10.3323 11.6026Z' fill='#9DD7F5' />
@@ -44,9 +44,9 @@ const Turtle: FunctionComponent<TurtleProps> = ({ state }) => {
         state.show ?
             state.shape !== "" ?
                 <image className={'svgInline'}
-                    href={state.shape} x={state.x - 10} y={state.y - 10}
+                    href={state.shape} x={state.position[0] - 10} y={state.position[1] - 10}
                     height={'32px'}
-                    transform={`rotate(${(-state.bearing) % 360}, 15, 15)`}
+                    transform={`rotate(${(-state.heading) % 360}, 15, 15)`}
                 />
                 :
                 defaultTurtle
@@ -59,6 +59,7 @@ const Background: FunctionComponent<{ grid: boolean }> = ({ grid }) => {
     const [id] = useModelState('id');
     const [url] = useModelState('bgUrl');
     const [background] = useModelState('background');
+    const [width] = useModelState('width');
 
     const defaultStyle = () =>
         <>
@@ -86,6 +87,7 @@ const Background: FunctionComponent<{ grid: boolean }> = ({ grid }) => {
                         id={'background-svg'}
                         className={'svgInline'}
                         href={url}
+                        width={`${width}px`}
                     />
                     :
                     defaultStyle()
@@ -99,10 +101,9 @@ const Screen: FunctionComponent = () => {
     const [width] = useModelState('width');
     const [height] = useModelState('height');
     const [actions] = useModelState('actions');
-    const [turtles, setTurtles] = useState<{ [key: string]: TurtleState }>({});
+    const [, setKey] = useModelState('key');
+    const [turtles, setTurtles] = useState<{ [key: string]: TurtleState }>({}); // TODO remove this later
 
-    const [actionsState, setActionsState] = useState<TurtleAction[]>([]);
-    console.log(actionsState)
     const [grid, setGrid] = useState(true);
     const ref = useRef<SVGSVGElement | null>(null);
     const positions = useRef<Record<string, Coord>>({});
@@ -124,7 +125,7 @@ const Screen: FunctionComponent = () => {
                 }
             })
 
-            setActionsState(savedData);
+            // setActionsState(savedData);
         }
     }, [id]);
 
@@ -220,7 +221,6 @@ const Screen: FunctionComponent = () => {
 
     const drawCircle = (action: TurtleAction): SVGPathElement | undefined => {
         const position = positions.current[action.id] ?? [width / 2, height / 2];
-
         const visual = document.createElementNS(SVG_NS, 'path');
         visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
         visual.setAttribute('d', `M ${position[0]},${position[1]} A ${action.radius},${action.radius}, 0 0 ${action.clockwise} ${action.position[0]},${action.position[1]}`);
@@ -298,13 +298,20 @@ const Screen: FunctionComponent = () => {
             // As model state now only provides addendum action, we'll need to accumulate the actions whenever
             // there is a new one. However, we'll need to persist existing actions before the change, as we'll
             // load these actions during mount with the latest action syncing from the kernel :-)
-            console.log("action-2", actions)
             if (Object.keys(actions).length === 0) {
                 return;
             }
             actions.forEach((action) => {
+                // const turtle = { [action.id]: ({ ...action } as unknown as TurtleState) }
+                // console.log("turtle", turtle)
+                setTurtles(oldTurtles => {
+                    const tempo = oldTurtles
+                    tempo[action.id] = { ...action } as unknown as TurtleState
+                    return tempo
+                })
                 switch (action.type) {
                     case ActionType.SOUND:
+                        // console.log("sound", action)
                         playSound(action);
                         break
 
@@ -318,17 +325,17 @@ const Screen: FunctionComponent = () => {
 
                         const t = actions.filter((tt: TurtleAction) => tt.id !== action.id);
                         sessionStorage.setItem(id.toString(), JSON.stringify(t));
-                        setActionsState(t)
+                        // setActionsState(t)
                         break
                     }
                     case ActionType.UPDATE_STATE: {
-                        const turtle = { [action.id]: ({ ...action } as unknown as TurtleState) }
-                        console.log("turtle", turtle)
-                        setTurtles(oldTurtles => {
-                            const tempo = oldTurtles
-                            tempo[action.id] = { ...action } as unknown as TurtleState
-                            return tempo
-                        })
+                        // const turtle = { [action.id]: ({ ...action } as unknown as TurtleState) }
+                        // console.log("turtle", turtle)
+                        // setTurtles(oldTurtles => {
+                        //     const tempo = oldTurtles
+                        //     tempo[action.id] = { ...action } as unknown as TurtleState
+                        //     return tempo
+                        // })
                         break
                     }
 
@@ -338,10 +345,6 @@ const Screen: FunctionComponent = () => {
                         const base = document.getElementById(`${id}_baseline`);
                         const renderer = getRenderer[action.type];
                         const visual = renderer(action);
-                        console.log("ActionType", action.type)
-                        console.log("visual", visual)
-                        console.log("svg", svg)
-                        console.log("base", base)
 
                         // Update start point of next painted line
                         positions.current[action.id] = action.position.slice() as Coord;
@@ -351,10 +354,10 @@ const Screen: FunctionComponent = () => {
 
                         // Since this is default case in switch, it would be triggered when component set up.
                         // We need to set data back to local storage to avoid getting lost of data while keep refreshing page
-                        setActionsState(actions => {
-                            sessionStorage.setItem(id.toString(), JSON.stringify(actions));
-                            return ([...actions, action])
-                        })
+                        // setActionsState(actions => {
+                        //     sessionStorage.setItem(id.toString(), JSON.stringify(actions));
+                        //     return ([...actions, action])
+                        // })
                         break
                     }
                 }
@@ -363,7 +366,10 @@ const Screen: FunctionComponent = () => {
     }, [actions, id]);
 
     const handleKeyDown = (event: any) => {
-        // TODO
+        event.preventDefault()
+        console.log('press key:', event.key)
+        setKey(event.key)
+        setKey("")
     };
 
     return (

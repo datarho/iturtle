@@ -8,9 +8,8 @@ import { TurtleAction } from './interface';
 import '../css/widget.css';
 
 export interface TurtleState {
-    x: number;
-    y: number;
-    bearing: number;
+    position: number[];
+    heading: number;
     show: boolean;
     shape: string
 }
@@ -33,6 +32,7 @@ export interface WidgetModelState {
     actions: TurtleAction[];
     show: boolean;
     bgUrl: string | null;
+    key: string;
 }
 
 export class TurtleModel extends DOMWidgetModel {
