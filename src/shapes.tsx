@@ -21,7 +21,6 @@ export const TurtleRender = ({ state, stampId }: { state: TurtleAction, stampId?
         visual.setAttribute('width', `${width}`)
         visual.setAttribute('height', `${height}`)
         visual.setAttribute('overflow', "visible")
-        visual.setAttribute('transform', `rotate(${heading} ${state.position[0]} ${state.position[1]})`);
         visual.setAttribute('stroke', state.pencolor);
         visual.setAttribute('stroke-width', `${state.penoutlinewidth}`);
         visual.setAttribute('fill', state.color);
@@ -36,18 +35,21 @@ export const TurtleRender = ({ state, stampId }: { state: TurtleAction, stampId?
         case "":
         case "default":
             const path = document.createElementNS(SVG_NS, 'path');
+            path.setAttribute('vector-effect', 'non-scaling-stroke');
             path.setAttribute('d', "M1.12403 18.87L10 1.11803L18.876 18.87L10.226 14.4873L10 14.3728L9.77402 14.4873L1.12403 18.87Z");
             shape.appendChild(path);
             break;
 
         case "triangle":
                 const trianglePath = document.createElementNS(SVG_NS, 'path');
+                trianglePath.setAttribute('vector-effect', 'non-scaling-stroke');
                 trianglePath.setAttribute('d', "M10 0L20 17.23H0L10 0Z");
                 shape.appendChild(trianglePath);
                 break;
 
         case "circle":
             const circle = document.createElementNS(SVG_NS, 'circle');
+            circle.setAttribute('vector-effect', 'non-scaling-stroke');
             circle.setAttribute('cx', "10");
             circle.setAttribute('cy', "10");
             circle.setAttribute('r', "10");
@@ -57,6 +59,7 @@ export const TurtleRender = ({ state, stampId }: { state: TurtleAction, stampId?
         
         case "square":
             const rect = document.createElementNS(SVG_NS, 'rect');
+            rect.setAttribute('vector-effect', 'non-scaling-stroke');
             rect.setAttribute('width', `${width}`);
             rect.setAttribute('height', `${height}`);
             shape.appendChild(rect);
@@ -85,6 +88,7 @@ export const TurtleRender = ({ state, stampId }: { state: TurtleAction, stampId?
                             '#FFDA44', '#FF9811'];
                 paths.forEach((d, i) => {
                     const path = document.createElementNS(SVG_NS, 'path');
+                    path.setAttribute('vector-effect', 'non-scaling-stroke');
                     path.setAttribute('d', d);
                     path.setAttribute('fill', colors[i]);
                     shape.appendChild(path);
