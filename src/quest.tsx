@@ -2,12 +2,11 @@ import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
 import { Camera, Download, GridDots } from 'tabler-icons-react';
 import { ActionType, Coord, FontSpec, TurtleAction, WidgetProps } from './interface';
 import { WidgetModelContext, useModelState } from './store';
-import { TurtleState } from './widget';
 
 import '../css/widget.css';
 import { saveAs } from 'file-saver';
 import { toPng } from 'html-to-image';
-import { Turtle } from './shapes';
+import { Turtle, TurtleRender } from './shapes';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -58,7 +57,7 @@ const Screen: FunctionComponent = () => {
     const [height] = useModelState('height');
     const [actions] = useModelState('actions');
     const [, setKey] = useModelState('key');
-    const [turtles, setTurtles] = useState<{ [key: string]: TurtleState }>({}); // TODO remove this later
+    const [turtles, setTurtles] = useState<{ [key: string]: TurtleAction }>({}); // TODO remove this later
 
     const [grid, setGrid] = useState(true);
     const ref = useRef<SVGSVGElement | null>(null);
@@ -205,11 +204,16 @@ const Screen: FunctionComponent = () => {
         return visual
     }
 
+    const drawStamp = (action: TurtleAction): SVGSVGElement | undefined => {
+        const visual = TurtleRender({state: action})
+        return visual
+    }
+
     const clear = (action: TurtleAction): undefined => {
         return undefined;
     }
 
-    const getRenderer: Record<ActionType, (action: TurtleAction) => SVGPathElement | SVGLineElement | SVGCircleElement | SVGTextElement | undefined> = {
+    const getRenderer: Record<ActionType, (action: TurtleAction) => SVGSVGElement | SVGPathElement | SVGLineElement | SVGCircleElement | SVGTextElement | undefined> = {
         [ActionType.MOVE_ABSOLUTE]: moveAbsolute,
         [ActionType.MOVE_RELATIVE]: moveRelative,
         [ActionType.LINE_ABSOLUTE]: lineAbsolute,
@@ -219,6 +223,7 @@ const Screen: FunctionComponent = () => {
         [ActionType.SOUND]: playSound,
         [ActionType.CLEAR]: clear,
         [ActionType.UPDATE_STATE]: updateState,
+        [ActionType.STAMP]: drawStamp
     }
 
     const takePicture = () => {
@@ -262,7 +267,7 @@ const Screen: FunctionComponent = () => {
                 // console.log("turtle", turtle)
                 setTurtles(oldTurtles => {
                     const tempo = oldTurtles
-                    tempo[action.id] = { ...action } as unknown as TurtleState
+                    tempo[action.id] = { ...action }
                     return tempo
                 })
                 switch (action.type) {
@@ -294,7 +299,15 @@ const Screen: FunctionComponent = () => {
                         // })
                         break
                     }
-
+                    case ActionType.STAMP:{
+                        const svg = document.getElementById(`${id}_svgCanvas`);
+                        const base = document.getElementById(`${id}_stamp_baseline`);
+                        const visual = TurtleRender({state: action, stampId:action.id}) // TODO: 后续要换成独特的stampID
+                        if (base && visual && svg) {
+                            svg.insertBefore(visual as unknown as Node, base)
+                        }
+                        break
+                    }
                     default: {
                         // We add ${id} into id of svg element to prevent conflicts of svg background in different tabs or cells
                         const svg = document.getElementById(`${id}_svgCanvas`);
@@ -347,8 +360,10 @@ const Screen: FunctionComponent = () => {
             <svg id={`${id}_svgCanvas`} ref={ref} viewBox={`0 0 ${width + 1} ${height + 1}`} xmlns='http://www.w3.org/2000/svg'>
                 <Background grid={grid} />
                 <svg id={`${id}_baseline`}></svg>
+
+                <svg id={`${id}_stamp_baseline`}></svg>
                 {
-                    Object.entries(turtles).map(([id, state]) =>
+                    Object.entries(turtles).map(([,state]) =>
                         <Turtle id={id} state={state} />
                     )
                 }

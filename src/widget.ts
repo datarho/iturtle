@@ -12,6 +12,7 @@ export interface TurtleState {
     heading: number;
     show: boolean;
     shape: string;
+    color:string;
     pencolor:string;
     penoutlinewidth: number;
     penstretchfactor: number[];
