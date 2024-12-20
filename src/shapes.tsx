@@ -8,8 +8,8 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 export const TurtleRender = ({ state, stampId }: { state: TurtleAction, stampId?:string }): SVGSVGElement =>{
     const width = TURTLEWIDTH * state.penstretchfactor[0];
     const height = TURTLEHEIGHT * state.penstretchfactor[1];
-    const x = state.position[0] - Math.trunc(TURTLEWIDTH/2 * state.penstretchfactor[1]);
-    const y = state.position[1] - Math.trunc(TURTLEHEIGHT/2 * state.penstretchfactor[0]);
+    const x = state.position[0] - Math.trunc(TURTLEWIDTH/2 * state.penstretchfactor[0]);
+    const y = state.position[1] - Math.trunc(TURTLEHEIGHT/2 * state.penstretchfactor[1]);
 
     const heading = (-state.heading + 90) % 360; 
 
