@@ -20,11 +20,12 @@ def turtle_worker(*args):
         distance = action['distance']
         speed = action['speed']
         
-        delay = max(
-          abs(distance) * screen.delay / (3 * 1.1 ** speed * speed),
-          1
-        ) * 0.05
-        time.sleep(delay)
+        if speed < 10:
+          delay = max(
+            abs(distance) * screen.delay / (3 * 1.1 ** speed * speed),
+            1
+          ) * 0.05
+          time.sleep(delay)
 
       screen.add_action(action)
   
@@ -37,7 +38,8 @@ class ActionType(str, Enum):
   CIRCLE = 'C'
   SOUND = 'S'
   CLEAR = 'CLR'
-  UPDATE_STATE= 'UPDATE_STATE'
+  UPDATE_STATE= 'UPDATE_STATE',
+  STAMP = 'STAMP'
 
 class Turtle:
   def __init__(self, screen=None):
@@ -57,6 +59,7 @@ class Turtle:
     self._color = 'black'
     self._heading = DEFAULT_HEADING
     self._show = True
+    self._stampid = ''
     self._pen = True
     self._pencolor = 'black'
     self._pensize = 1
@@ -91,6 +94,7 @@ class Turtle:
       'color': self._color,
       'heading': self._heading,
       "show": self._show,
+      'stampid': self._stampid,
       'pen': self._pen,
       'pencolor': self._pencolor,
       'pensize': self._pensize,
@@ -177,29 +181,27 @@ class Turtle:
       else:
         self._color = _color
 
-  @property
   def heading(self):
     return self._heading
-  
-  @heading.setter
-  def heading(self, angle):
-    self.setheading(angle)
     
   def setheading(self, angle):
     self._heading = (angle + 360) % 360
     
     self._add_action(ActionType.UPDATE_STATE, False)
 
-  def towards(self, pos):
-    return self.towards(pos[0], pos[1])
-  
-  def towards(self, x, y):
+  def towards(self, x, y=None):
+    _x, _y = 0, 0
     if y is None:
-      return 0 if x >= self._x else 180
-    
-    return degrees(atan2(y - self._y, x - self._x))
+      if (type(x) is list) or (type(x) is tuple):
+        _x, _y = x[0], x[1]
+      else:
+        _x, _y = x, self._y
+    else:
+      _x, _y = x, y
+      
+    return degrees(atan2(_y - self._y, _x - self._x))
   
-  def bgcolor(self, *args): # TODO: move this to screen
+  def bgcolor(self, *args): # Same as for screen
     if len(args) == 3:
       r = self._clamp(args[0], 0, 255)
       g = self._clamp(args[1], 0, 255)
@@ -259,7 +261,17 @@ class Turtle:
       
   # Move
   def distance(self, x, y=None):
-      return abs(self._x - x) if y is None else sqrt((self._x - x) ** 2 + (self._y - y) ** 2)
+    _x, _y = 0, 0
+    
+    if y is None:
+      if (type(x) is list) or (type(x) is tuple):
+        _x, _y = x[0], x[1]
+      else:
+        _x, _y = x, self._y
+    else:
+      _x, _y = x, y
+      
+    return sqrt((self._x - _x) ** 2 + (self._y - _y) ** 2)
     
   def backward(self, distance):
     self.forward(-distance)
@@ -290,6 +302,12 @@ class Turtle:
     
     self._add_action(ActionType.MOVE_ABSOLUTE)
     
+  def stamp(self):
+    self._stampid = str(uuid.uuid4())
+    self._add_action(ActionType.STAMP)
+    
+    self._stampid = ''
+    
   def home(self):
     self._heading = DEFAULT_HEADING
     self.goto(0, 0)
@@ -315,7 +333,7 @@ class Turtle:
     self._align = align.lower()
     self._font = font
     self._distance = 0
-    self._add_action(ActionType.WRITE_TEXT)
+    self._add_action(ActionType.WRITE_TEXT, False)
     self.text = None
     
   def dot(self, size, *color):

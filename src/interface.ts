@@ -1,3 +1,6 @@
+import { WidgetModel } from "@jupyter-widgets/base";
+import { TurtleState } from "./widget";
+
 export type FontSpec = [family: string, size: number, weight: string];
 
 export type Coord = [x: number, y: number]
@@ -12,23 +15,61 @@ export enum ActionType {
     SOUND = 'S',
     CLEAR = 'CLR',
     UPDATE_STATE = 'UPDATE_STATE',
+    STAMP = "STAMP",
 }
 
 export interface TurtleAction {
-    id: string;             // turtle id
-    type: ActionType;
-    pen: number;
-    pencolor: string;
-    position: Coord;
-    change: boolean;
-    velocity: number;
-    distance: number;
-    pensize: number;
-    radius: number;
-    clockwise: number;
-    text?: string;
-    font?: FontSpec;
-    align?: string;
-    media?: string;
-    key?: string
+    // Unique identifier for the turtle
+    id: string;             
+    // Type of action to perform
+    type: ActionType;       
+    // Pen state: 1 for down, 0 for up
+    pen: number;            
+    // Fill color of the turtle
+    color: string;          
+    // Color of the pen
+    pencolor: string;       
+    // Current [x, y] coordinates
+    position: Coord;        
+    // Flag indicating state change
+    change: boolean;        
+    // Movement speed
+    velocity: number;       
+    // Distance to move
+    distance: number;       
+    // Width of the pen stroke
+    pensize: number;        
+    // Radius for circle operations
+    radius: number;         
+    // Direction for circle drawing: 1 for clockwise, -1 for counter-clockwise
+    clockwise: number;      
+    // Text content for writing operations
+    text?: string;          
+    // Font specifications [family, size, weight]
+    font?: FontSpec;        
+    // Text alignment: "left", "center", or "right"
+    align?: string;         
+    // Media resource identifier
+    media?: string;         
+    // Key identifier for events
+    key?: string;           
+    // Angle in degrees (0 is east)
+    heading: number;        
+    // Shape of the turtle
+    shape: string;          
+    // Stretch factors for pen [horizontal, vertical]
+    penstretchfactor: number[];  
+    // Width of the pen outline
+    penoutlinewidth: number;     
+    // Visibility state of the turtle
+    show: boolean;          
+}
+
+export interface TurtleProps {
+    id: string;
+    state: TurtleState;
+}
+
+export interface WidgetProps {
+    model: WidgetModel;
 }
