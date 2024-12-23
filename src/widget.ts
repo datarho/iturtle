@@ -40,6 +40,12 @@ export interface WidgetModelState {
     show: boolean;
     size: number;
     turtles: Record<string, TurtleState>;
+    resource: {
+        'name': string,
+        'type': string,
+        'ext': string,
+        'buffer': string
+      }
 }
 
 export class TurtleModel extends DOMWidgetModel {

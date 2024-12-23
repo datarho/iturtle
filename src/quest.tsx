@@ -14,6 +14,7 @@ const Background: FunctionComponent<{ grid: boolean }> = ({ grid }) => {
     const [id] = useModelState('id');
     const [url] = useModelState('bgUrl');
     const [background] = useModelState('background');
+    const [resource]  = useModelState('resource');
     const [width] = useModelState('width');
 
     const defaultStyle = () =>
@@ -37,7 +38,7 @@ const Background: FunctionComponent<{ grid: boolean }> = ({ grid }) => {
     return (
         <>
             {
-                url ?
+                url && url.startsWith("https") ?
                     <image
                         id={'background-svg'}
                         className={'svgInline'}
@@ -45,7 +46,12 @@ const Background: FunctionComponent<{ grid: boolean }> = ({ grid }) => {
                         width={`${width}px`}
                     />
                     :
-                    defaultStyle()
+                    resource.buffer ?
+                        <image width="100%"
+                            href={`data:${resource.type}/${resource.ext};base64,${resource.buffer}`} 
+                        />
+                        :
+                        defaultStyle()
             }
         </>
     )

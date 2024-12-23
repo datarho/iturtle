@@ -1,6 +1,7 @@
 import React, { FunctionComponent, useEffect, useRef } from "react";
 import { TurtleAction } from "./interface";
 
+
 const TURTLEHEIGHT = 20;
 const TURTLEWIDTH = 20;
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -60,8 +61,11 @@ export const TurtleRender = ({ state, stampId }: { state: TurtleAction, stampId?
         case "square":
             const rect = document.createElementNS(SVG_NS, 'rect');
             rect.setAttribute('vector-effect', 'non-scaling-stroke');
-            rect.setAttribute('width', `${width}`);
-            rect.setAttribute('height', `${height}`);
+
+            // Remove the multiplication factor for width and height
+            rect.setAttribute('width', `${width / state.penstretchfactor[0]}`);
+            rect.setAttribute('height', `${height / state.penstretchfactor[1]}`);
+
             shape.appendChild(rect);
             break;
 
