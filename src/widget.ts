@@ -41,11 +41,13 @@ export interface WidgetModelState {
     size: number;
     turtles: Record<string, TurtleState>;
     resource: {
-        'name': string,
-        'type': string,
-        'ext': string,
-        'buffer': string
-      }
+        [key:string]:{
+            'name': string,
+            'type': string,
+            'ext': string,
+            'buffer': string 
+        }
+    }
 }
 
 export class TurtleModel extends DOMWidgetModel {

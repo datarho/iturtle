@@ -1,6 +1,6 @@
 import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
 import { Camera, Download, GridDots } from 'tabler-icons-react';
-import { ActionType, Coord, FontSpec, TurtleAction, WidgetProps } from './interface';
+import { ActionType, Coord, FontSpec, ResourceProps, TurtleAction, WidgetProps } from './interface';
 import { WidgetModelContext, useModelState } from './store';
 
 import '../css/widget.css';
@@ -10,13 +10,12 @@ import { Turtle, TurtleRender } from './shapes';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-const Background: FunctionComponent<{ grid: boolean }> = ({ grid }) => {
+const Background: FunctionComponent<{ resource:ResourceProps, grid: boolean }> = ({ resource, grid }) => {
     const [id] = useModelState('id');
     const [url] = useModelState('bgUrl');
     const [background] = useModelState('background');
-    const [resource]  = useModelState('resource');
     const [width] = useModelState('width');
-
+   
     const defaultStyle = () =>
         <>
             <defs>
@@ -38,7 +37,7 @@ const Background: FunctionComponent<{ grid: boolean }> = ({ grid }) => {
     return (
         <>
             {
-                url && url.startsWith("https") ?
+                url && url.startsWith('https') ?
                     <image
                         id={'background-svg'}
                         className={'svgInline'}
@@ -46,9 +45,9 @@ const Background: FunctionComponent<{ grid: boolean }> = ({ grid }) => {
                         width={`${width}px`}
                     />
                     :
-                    resource.buffer ?
+                    url && resource[url]?.buffer && resource[url]?.type === 'image' ?
                         <image width="100%"
-                            href={`data:${resource.type}/${resource.ext};base64,${resource.buffer}`} 
+                            href={`data:${resource[url].type}/${resource[url].ext};base64,${resource[url].buffer}`}
                         />
                         :
                         defaultStyle()
@@ -62,6 +61,7 @@ const Screen: FunctionComponent = () => {
     const [width] = useModelState('width');
     const [height] = useModelState('height');
     const [actions] = useModelState('actions');
+    const [resource] = useModelState('resource'); //Resource must be established in top level
     const [, setKey] = useModelState('key');
     const [turtles, setTurtles] = useState<{ [key: string]: TurtleAction }>({}); // TODO remove this later
 
@@ -211,7 +211,7 @@ const Screen: FunctionComponent = () => {
     }
 
     const drawStamp = (action: TurtleAction): SVGSVGElement | undefined => {
-        const visual = TurtleRender({state: action})
+        const visual = TurtleRender({ state: action, resource })
         return visual
     }
 
@@ -305,10 +305,10 @@ const Screen: FunctionComponent = () => {
                         // })
                         break
                     }
-                    case ActionType.STAMP:{
+                    case ActionType.STAMP: {
                         const svg = document.getElementById(`${id}_svgCanvas`);
                         const base = document.getElementById(`${id}_stamp_baseline`);
-                        const visual = TurtleRender({state: action, stampId:action.id}) // TODO: 后续要换成独特的stampID
+                        const visual = TurtleRender({ state: action, resource, stampId: action.id }) // TODO: 后续要换成独特的stampID
                         if (base && visual && svg) {
                             svg.insertBefore(visual as unknown as Node, base)
                         }
@@ -344,7 +344,7 @@ const Screen: FunctionComponent = () => {
         event.preventDefault()
         console.log('press key:', event.key)
         setKey(event.key)
-        setKey("")
+        setKey('')
     };
 
     return (
@@ -364,13 +364,13 @@ const Screen: FunctionComponent = () => {
             </div>
 
             <svg id={`${id}_svgCanvas`} ref={ref} viewBox={`0 0 ${width + 1} ${height + 1}`} xmlns='http://www.w3.org/2000/svg'>
-                <Background grid={grid} />
+                <Background grid={grid} resource={resource}/>
                 <svg id={`${id}_baseline`}></svg>
 
                 <svg id={`${id}_stamp_baseline`}></svg>
                 {
-                    Object.entries(turtles).map(([,state]) =>
-                        <Turtle id={id} state={state} />
+                    Object.entries(turtles).map(([, state]) =>
+                        <Turtle id={id} state={state} resource={resource}/>
                     )
                 }
             </svg>

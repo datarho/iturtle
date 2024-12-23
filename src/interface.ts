@@ -62,9 +62,16 @@ export interface TurtleAction {
     // Width of the pen outline
     penoutlinewidth: number;     
     // Visibility state of the turtle
-    show: boolean;          
+    show: boolean;       
 }
-
+export interface ResourceProps {
+    [key:string]:{
+        'name': string,
+        'type': string,
+        'ext': string,
+        'buffer': string 
+    }
+}
 export interface TurtleProps {
     id: string;
     state: TurtleState;
