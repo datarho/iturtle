@@ -104,26 +104,37 @@ export const TurtleRender = ({ state, resource, stampId }: { state: TurtleAction
 
         default:{
             if(!state.shape) {break}
-            const image = document.createElementNS(SVG_NS, 'image');
             let tempoShape:string = "";
             if(state.shape?.startsWith("https")){
-                tempoShape = state.shape; 
+                const image = document.createElementNS(SVG_NS, 'image');
+                image.setAttribute('href', state.shape);
+                svg.setAttribute('x', `${x + 2}`);
+                svg.setAttribute('y', `${y + 2}`);
+                shape.appendChild(image);
             }else{
-                console.log("state", state)
-                console.log("resource", resource)
                 const tempoResource = resource[state.shape];
                 if(!tempoResource) {break};
-                tempoShape = `data:${tempoResource.type}/${tempoResource.ext};base64,${tempoResource.buffer}`
-            }
-            image.setAttribute('href', tempoShape);
-            image.setAttribute('height', '20px');
-            
-            // Notice customized shape need to adjust x and y 
-            svg.setAttribute('x', `${x + 2}`);
-            svg.setAttribute('y', `${y + 2}`);
 
-            shape.appendChild(image);
-            
+                if(tempoResource.ext === "svg"){
+                    const decoder = new TextDecoder('utf-8');
+                    const decodedString = decoder.decode(tempoResource.buffer as any);
+                    const parser = new DOMParser();
+                    const svgDoc = parser.parseFromString(decodedString, 'image/svg+xml');
+                    const svgElement = svgDoc.documentElement;
+                    
+                    while (svgElement.firstChild) {
+                        shape.appendChild(svgElement.firstChild);
+                    }
+                    
+                }else{
+                    const image = document.createElementNS(SVG_NS, 'image');
+                    tempoShape = `data:${tempoResource.type}/${tempoResource.ext};base64,${tempoResource.buffer}`;
+                    image.setAttribute('href', tempoShape);
+                    svg.setAttribute('x', `${x + 2}`);
+                    svg.setAttribute('y', `${y + 2}`);
+                    shape.appendChild(image);
+                }
+            }
             break;
         }
     }
