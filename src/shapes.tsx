@@ -41,11 +41,11 @@ export const TurtleRender = ({ state, resource, stampId }: { state: TurtleAction
         }
 
         case 'triangle':{
-                const trianglePath = document.createElementNS(SVG_NS, 'path');
-                trianglePath.setAttribute('vector-effect', 'non-scaling-stroke');
-                trianglePath.setAttribute('d', 'M10 0L20 17.23H0L10 0Z');
-                shape.appendChild(trianglePath);
-                break;
+            const trianglePath = document.createElementNS(SVG_NS, 'path');
+            trianglePath.setAttribute('vector-effect', 'non-scaling-stroke');
+            trianglePath.setAttribute('d', 'M10 0L20 17.23H0L10 0Z');
+            shape.appendChild(trianglePath);
+            break;
         }
 
         case 'circle':{
@@ -90,8 +90,9 @@ export const TurtleRender = ({ state, resource, stampId }: { state: TurtleAction
                 'M19.6188 12.3061 21.8529 19.1825 16.0037 23.4322 16 12.3061Z',            
             ];
             const colors = ['#9DD7F5', '#78B9EB', '#9DD7F5', '#9DD7F5', '#78B9EB', '#78B9EB', 
-                        '#FF9811', '#FF5023', '#FF5023', '#FF9811', '#D80027', '#802812', 
-                        '#FFDA44', '#FF9811'];
+                '#FF9811', '#FF5023', '#FF5023', '#FF9811', '#D80027', '#802812', 
+                '#FFDA44', '#FF9811'
+            ];
             paths.forEach((d, i) => {
                 const path = document.createElementNS(SVG_NS, 'path');
                 path.setAttribute('vector-effect', 'non-scaling-stroke');
@@ -147,7 +148,6 @@ export const TurtleRender = ({ state, resource, stampId }: { state: TurtleAction
 
 export const Turtle: FunctionComponent<{id: string, resource:ResourceProps, state: TurtleAction}> = ( {id, resource, state} ) => {
     const ref = useRef<SVGSVGElement>(null);
-    console.log("resource-1",resource)
 
     useEffect(() => {
         if(state.show){

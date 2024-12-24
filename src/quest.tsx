@@ -65,6 +65,8 @@ const Screen: FunctionComponent = () => {
     const [, setKey] = useModelState('key');
     const [turtles, setTurtles] = useState<{ [key: string]: TurtleAction }>({}); // TODO remove this later
 
+    const currentAudio = useRef<HTMLAudioElement | null>(null);
+
     const [grid, setGrid] = useState(true);
     const ref = useRef<SVGSVGElement | null>(null);
     const positions = useRef<Record<string, Coord>>({});
@@ -131,11 +133,47 @@ const Screen: FunctionComponent = () => {
     }
 
     const playSound = (action: TurtleAction): undefined => {
-        const audio = new Audio(action.media);
-        audio.autoplay = true;
+        if(!action.media){return}
+        let audio: HTMLAudioElement;
+
+        if(action.media?.startsWith("http")){
+            if (currentAudio.current) {
+                currentAudio.current.pause();
+                currentAudio.current.src = '';
+                currentAudio.current.remove();
+            }
+            audio = new Audio(action.media);
+            currentAudio.current = audio;
+        }else{
+            const tempoResource = resource[action.media];
+            const base64Audio = `data:${tempoResource.type}/${tempoResource.ext};base64,${tempoResource.buffer}`;
+
+            // Transfer Base64 data into Blob object
+            const byteCharacters = atob(base64Audio.split(',')[1]);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: 'audio/mpeg' });
+
+            // Create URL
+            const audioUrl = URL.createObjectURL(blob);
+            audio = new Audio(audioUrl);
+            currentAudio.current = audio;
+        }
+        audio.play()
+
+        // Clean audio element after playing
         audio.addEventListener('ended', () => {
             audio.src = '';
+            if (currentAudio.current) {
+                currentAudio.current.src = '';
+                currentAudio.current.remove();
+                currentAudio.current = null;
+            }
         });
+        
 
         return undefined;
     }
