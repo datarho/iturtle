@@ -1,135 +1,198 @@
-"""
-Interactive turtle widget module
-"""
-
-from enum import Enum
-
-from time import sleep
-
-from IPython.display import clear_output, display
-from ipywidgets import DOMWidget
-from traitlets import Bool, Dict, Float, Int, Unicode
+import base64
+import threading
+import time
+import uuid
 
 from .frontend import MODULE_NAME, MODULE_VERSION
+from IPython.display import clear_output, display
+from ipywidgets import DOMWidget
+from traitlets import Dict, HasTraits, Int, List, Unicode, observe
 
+SCREEN_FRAMERATE = 15
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 500
+DELAY = 2
+# SCREEN_WIDTH = 500
+# SCREEN_HEIGHT = 800
 
-class ActionType(str, Enum):
-    """
-    Enum for action types that follows SVG path commands.
-    """
+IMAGE_EXTS = ['bmp', 'gif', 'ico‌', 'jpg', 'png', 'svg']
+VIDEO_EXTS = ['mp4', 'webm']
+AUDIO_EXTS = ['aac', 'm4a', 'mp3', 'wav']
 
-    MOVE_ABSOLUTE = "M"
-    MOVE_RELATIVE = "m"
-    LINE_ABSOLUTE = "L"
-    DRAW_DOT = "D"
-    WRITE_TEXT = "W"
-    CIRCLE = "C"
-    SOUND = "S"
-    CLEAR = "CLR"
+class Screen(DOMWidget, HasTraits):
+  _model_name = Unicode('TurtleModel').tag(sync=True)
+  _model_module = Unicode(MODULE_NAME).tag(sync=True)
+  _model_module_version = Unicode(MODULE_VERSION).tag(sync=True)
+  _view_name = Unicode('TurtleView').tag(sync=True)
+  _view_module = Unicode(MODULE_NAME).tag(sync=True)
+  _view_module_version = Unicode(MODULE_VERSION).tag(sync=True)
+  
+  id = Unicode('').tag(sync=True)
+  width = Int(SCREEN_WIDTH).tag(sync=True)
+  height = Int(SCREEN_HEIGHT).tag(sync=True)
+  delay = Int(DELAY).tag(sync=True)
+  bgUrl = Unicode('').tag(sync=True)
+  background = Unicode("white").tag(sync=True)
+  resource = Dict().tag(sync=True)
+  
+  key = Unicode('').tag(sync=True)
+  actions = List([]).tag(sync=True)
+  
+  def __init__(self, framerate=SCREEN_FRAMERATE):
+    super(Screen, self).__init__()
+    
+    self._tracer = 1 # 0 means manual mode, others as auto mode
+    self.curr_key = None
+    self._on_keys = {}
+    self._framerate = SCREEN_FRAMERATE
+    
+    self.loaded = set()
+    
+    display(self)
+    
+    time.sleep(0.1)
+    self.id = str(uuid.uuid4())
+    
+    self.todo_actions = {}
+    
+    self._main_loop = None
+    
+    
+    self.interval = 1000 / framerate
+    self.stop_event = threading.Event()
+    self.lock = threading.Lock()
+    self.thread = None
+    
+    if self._tracer > 0:
+      self.start()
 
+  def setup(self, width, height):
+      self.width = width
+      self.height = height
+    
+  def start(self, main_loop=None):
+    if (not self.thread) or (not self.thread.is_alive()):
+      self.stop_event.clear()
+      self.thread = threading.Thread(target=main_loop if main_loop else self._run)
+      self.thread.start()
 
-class Screen(DOMWidget):
-    """
-    Interactive turtle widget
-    """
+  def stop(self):
+    if self.thread:
+      self.stop_event.set()
+      self.thread.join()
+      if self.lock.locked():
+        self.lock.release()
+      
+  def tracer(self, n):
+    self._tracer = n
+    
+    if self._tracer > 0:
+      self.start()
+    else:
+      self.stop()
+      
+  def update(self):
+    if self._tracer == 0:
+      self.actions = self._build_actions()
+      
+  def bgcolor(self, *args): # TODO: move this to screen
+    if len(args) == 3:
+      r = self._clamp(args[0], 0, 255)
+      g = self._clamp(args[1], 0, 255)
+      b = self._clamp(args[2], 0, 255)
 
-    # Define constants here.
+      self.background = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
+    elif len(args) == 1:
+      self.background = args[0]
+      
+  def bgpic(self, src, reload=False):
+    self.load(src, reload)
+    
+    self.bgUrl = src
+      
+  def save(self):
+    clear_output()
+    display(self)
+    
+  def onkeypress(self, fn, key):
+    self._on_keys[key] = fn
+      
+  def add_action(self, action):
+    try:
+      self.lock.acquire()
 
-    WIDTH = 800
-    HEIGHT = 500
-    DELAY = 2
-
-    # Jupyter model variables.
-
-    _model_name = Unicode("TurtleModel").tag(sync=True)
-    _model_module = Unicode(MODULE_NAME).tag(sync=True)
-    _model_module_version = Unicode(MODULE_VERSION).tag(sync=True)
-    _view_name = Unicode("TurtleView").tag(sync=True)
-    _view_module = Unicode(MODULE_NAME).tag(sync=True)
-    _view_module_version = Unicode(MODULE_VERSION).tag(sync=True)
-
-    # Widget state goes here.
-
-    width = Int(WIDTH).tag(sync=True)
-    height = Int(HEIGHT).tag(sync=True)
-    bgUrl = Unicode("").tag(sync=True)
-    background = Unicode("white").tag(sync=True)
-    id = Int(0).tag(sync=True)
-
-    bearing = Float(0).tag(sync=True)
-    show = Bool(True).tag(sync=True)
-
-    turtles = Dict().tag(sync=True)
-
-    # We will only sync delta action so that frontend will handle the whole states.
-
-    action = Dict().tag(sync=True)
-
-    def __init__(self):
-        """
-        Create a Screen.
-
-        Example:
-        >>> t = Screen()
-        """
-        super(Screen, self).__init__()
-
-        display(self)
-
-        sleep(0.5) # leave a time window for data sync
+      _id = action['id']
+      if _id not in self.todo_actions:
+        self.todo_actions[_id] = []
+      self.todo_actions[_id].append(action)
+    finally:
+      self.lock.release()
+      
+  def load(self, file_path, reload=False):
+    if (file_path not in self.loaded) or reload:
+      if not ((file_path.startswith('http://')) or (file_path.startswith('https://'))):
+        ext = file_path.split('.')[-1].lower()
+        _type = None
         
-        self.id = id(self)
-        self.velocity = 3  # avoid duplicate to speed method
+        if ext in IMAGE_EXTS:
+          _type = 'image'
+        elif ext in VIDEO_EXTS:
+          _type = 'video'
+        elif ext in AUDIO_EXTS:
+          _type = 'audio'
+        else:
+          raise Exception(f'Unknown resource type for {file_path}')
+      
+        buffer = read_file(file_path) if ext == 'svg' else file_to_base64(file_path)
+        self.resource = {
+          'name': file_path,
+          'type': _type,
+          'ext': ext,
+          'buffer': buffer
+        }
+    
+        self.loaded.add(file_path)
+      
+  def _run(self):
+    while not self.stop_event.is_set():
+      next_timestamp = time.monotonic() + self.interval
+      
+      self.actions = self._build_actions()
+      
+      sleep_time = next_timestamp - time.monotonic()
+      if sleep_time > 0:
+        self.stop_event.wait(sleep_time / 1000)
+  
+  def _build_actions(self):
+    _actions = []
+    
+    try:
+      self.lock.acquire()
+      
+      # 简化处理，先瞬移再说  
+      for v in self.todo_actions.values():
+        for _ in range(len(v)):
+          _actions.append(v.pop(0))
+    finally:
+      self.lock.release()
 
-        self.turtles = dict()
+    return _actions
+  
+  @observe('key')
+  def on_key_change(self, _):
+    self.curr_key = self.key
+    
+    if self.curr_key in self._on_keys:
+      (self._on_keys[self.curr_key])()
+    
+    self.curr_key = None
 
-    def save(self) -> None:
-        clear_output()
-        display(self)
-
-    def _add_action(self, turtle, action_type: ActionType):
-        # Build basic action properties
-        action = dict(
-            id=str(turtle.id),
-            type=action_type,
-            media=turtle.media,
-            pen=turtle.pen,
-            color=turtle.pen_color,
-            distance=abs(turtle._distance),
-            position=(turtle.x, turtle.y),
-            velocity=self.velocity,
-            radius=turtle.radius,
-            clockwise=turtle.clockwise,
-            size=turtle.pen_size,
-        )
-
-        # Build optional action properties.
-
-        if turtle.text:
-            action["text"] = turtle.text
-            action["font"] = turtle.font
-            action["align"] = turtle.align
-
-        # Swap to instance action variable for sync.
-        self.action = action
-
-        self._run(turtle._distance)
-
-    def _run(self, distance):
-        # By default the motion of a turtle is broken up into a number of individual steps determined by:
-        #   steps = int(distance / (3 * 1.1**speed * speed))
-        # At the default speed (3 or 'slow'), a 100px line would be drawn in 8 steps. At the slowest speed
-        # (1 or 'slowest'), 30 steps. At a fast speed (10 or 'fast'), 1 step.
-
-        steps = max(
-            abs(distance) * self.DELAY / (3 * 1.1**self.velocity * self.velocity), 1
-        )
-        # Each step incurs a screen update delay of 100ms by default. We should not shorten the delay as
-        # websocket won't be able to process all the messages in a short time.
-        sleep(steps * 0.05)
-
-    def delay(self, d: int) -> None:
-        Screen.DELAY = d
-
-    def bgpic(self, src: str):
-        self.bgUrl = src
+def read_file(file_path):
+  with open(file_path, 'rb') as f:
+    return f.read()
+  
+def file_to_base64(file_path):
+  fc = read_file(file_path)
+  buffer = base64.b64encode(fc)
+  
+  return buffer.decode('utf-8')
