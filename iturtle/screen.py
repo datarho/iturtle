@@ -1,3 +1,4 @@
+import base64
 import threading
 import time
 import uuid
@@ -5,7 +6,7 @@ import uuid
 from .frontend import MODULE_NAME, MODULE_VERSION
 from IPython.display import clear_output, display
 from ipywidgets import DOMWidget
-from traitlets import HasTraits, Int, List, Unicode, observe
+from traitlets import Dict, HasTraits, Int, List, Unicode, observe
 
 SCREEN_FRAMERATE = 15
 SCREEN_WIDTH = 800
@@ -13,6 +14,10 @@ SCREEN_HEIGHT = 500
 DELAY = 2
 # SCREEN_WIDTH = 500
 # SCREEN_HEIGHT = 800
+
+IMAGE_EXTS = ['bmp', 'gif', 'ico‌', 'jpg', 'png', 'svg']
+VIDEO_EXTS = ['mp4', 'webm']
+AUDIO_EXTS = ['aac', 'm4a', 'mp3', 'wav']
 
 class Screen(DOMWidget, HasTraits):
   _model_name = Unicode('TurtleModel').tag(sync=True)
@@ -26,8 +31,9 @@ class Screen(DOMWidget, HasTraits):
   width = Int(SCREEN_WIDTH).tag(sync=True)
   height = Int(SCREEN_HEIGHT).tag(sync=True)
   delay = Int(DELAY).tag(sync=True)
-  bgUrl = Unicode("").tag(sync=True)
+  bgUrl = Unicode('').tag(sync=True)
   background = Unicode("white").tag(sync=True)
+  resource = Dict().tag(sync=True)
   
   key = Unicode('').tag(sync=True)
   actions = List([]).tag(sync=True)
@@ -39,6 +45,8 @@ class Screen(DOMWidget, HasTraits):
     self.curr_key = None
     self._on_keys = {}
     self._framerate = SCREEN_FRAMERATE
+    
+    self.loaded = set()
     
     display(self)
     
@@ -97,7 +105,9 @@ class Screen(DOMWidget, HasTraits):
     elif len(args) == 1:
       self.background = args[0]
       
-  def bgpic(self, src):
+  def bgpic(self, src, reload=False):
+    self.load(src, reload)
+    
     self.bgUrl = src
       
   def save(self):
@@ -117,6 +127,31 @@ class Screen(DOMWidget, HasTraits):
       self.todo_actions[_id].append(action)
     finally:
       self.lock.release()
+      
+  def load(self, file_path, reload=False):
+    if (file_path not in self.loaded) or reload:
+      if not ((file_path.startswith('http://')) or (file_path.startswith('https://'))):
+        ext = file_path.split('.')[-1].lower()
+        _type = None
+        
+        if ext in IMAGE_EXTS:
+          _type = 'image'
+        elif ext in VIDEO_EXTS:
+          _type = 'video'
+        elif ext in AUDIO_EXTS:
+          _type = 'audio'
+        else:
+          raise Exception(f'Unknown resource type for {file_path}')
+      
+        buffer = read_file(file_path) if ext == 'svg' else file_to_base64(file_path)
+        self.resource = {
+          'name': file_path,
+          'type': _type,
+          'ext': ext,
+          'buffer': buffer
+        }
+    
+        self.loaded.add(file_path)
       
   def _run(self):
     while not self.stop_event.is_set():
@@ -151,3 +186,13 @@ class Screen(DOMWidget, HasTraits):
       (self._on_keys[self.curr_key])()
     
     self.curr_key = None
+
+def read_file(file_path):
+  with open(file_path, 'rb') as f:
+    return f.read()
+  
+def file_to_base64(file_path):
+  fc = read_file(file_path)
+  buffer = base64.b64encode(fc)
+  
+  return buffer.decode('utf-8')

@@ -22,7 +22,16 @@ export const useModelState = <T extends keyof WidgetModelState>(name: T): [Widge
     useModelEvent(
         `change:${name}`,
         (model) => {
-            setState(model.get(name));
+            // Special case, states in resource should be record as dictionary
+            if(name==='resource'){
+                setState(old => {
+                    const data = {...old as any};
+                    data[model.get(name).name] = model.get(name)
+                    return data
+                });
+            }else{
+                setState(model.get(name));
+            }  
         },
         [name]
     );

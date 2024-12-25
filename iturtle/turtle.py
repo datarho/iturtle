@@ -211,7 +211,10 @@ class Turtle:
     elif len(args) == 1:
       self.screen.background = args[0]
       
-  def shape(self, _shape=None):
+  def shape(self, _shape=None, reload=False):
+    if _shape not in ['circle', 'default', 'square', 'triangle', 'turtle']:
+      self.screen.load(_shape, reload)
+        
     if _shape is None:
       return self._shape
     else:
@@ -264,7 +267,9 @@ class Turtle:
     _x, _y = 0, 0
     
     if y is None:
-      if (type(x) is list) or (type(x) is tuple):
+      if type(x) is Turtle:
+        _x, _y = x._x, x._y
+      elif (type(x) is list) or (type(x) is tuple):
         _x, _y = x[0], x[1]
       else:
         _x, _y = x, self._y
@@ -322,13 +327,15 @@ class Turtle:
   def clear(self):
     self._add_action(ActionType.CLEAR, False)
     
-  def play(self, sound): # iturtle specific
+  def play(self, sound, reload=False): # iturtle specific
+    self.screen.load(sound, reload)
+    
     self._media = sound
     self._distance = 0
     self._add_action( ActionType.SOUND, False)
     self._media = None
     
-  def write(self, arg, align='left', font=("Arial", 8, "normal")):
+  def write(self, arg, move=False, align='left', font=("Arial", 8, "normal")):
     self._text = str(arg)
     self._align = align.lower()
     self._font = font
@@ -395,6 +402,7 @@ class Turtle:
   st = showturtle
   ht = hideturtle
   seth = setheading
+  turtlesize=shapesize
   lt = left
   rt = right
   pu = penup
