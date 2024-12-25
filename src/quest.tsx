@@ -236,7 +236,6 @@ const Screen: FunctionComponent = () => {
         const width = getTextWidth(action.font, action.text);
 
         positions.current[action.id] = getTextPos(action, width) as Coord;
-
         const visual = document.createElementNS(SVG_NS, 'text');
         visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
         visual.setAttribute('x', `${positions.current[action.id][0]}`);
@@ -244,12 +243,13 @@ const Screen: FunctionComponent = () => {
         visual.setAttribute('font-family', `${action.font?.[0]}`);
         visual.setAttribute('font-size', `${action.font?.[1]}`);
         visual.setAttribute('font-style', `${action.font?.[2]}`);
+        visual.setAttribute('fill', action.pencolor);
         visual.innerHTML = `${action.text}`
         return visual
     }
 
     const drawStamp = (action: TurtleAction): SVGSVGElement | undefined => {
-        const visual = TurtleRender({ state: action, resource })
+        const visual = TurtleRender({ action: action, resource, stampId: action.stampid })
         return visual
     }
 
@@ -307,8 +307,6 @@ const Screen: FunctionComponent = () => {
                 return;
             }
             actions.forEach((action) => {
-                // const turtle = { [action.id]: ({ ...action } as unknown as TurtleState) }
-                // console.log("turtle", turtle)
                 setTurtles(oldTurtles => {
                     const tempo = oldTurtles
                     tempo[action.id] = { ...action }
@@ -316,7 +314,6 @@ const Screen: FunctionComponent = () => {
                 })
                 switch (action.type) {
                     case ActionType.SOUND:
-                        // console.log("sound", action)
                         playSound(action);
                         break
 
@@ -346,9 +343,23 @@ const Screen: FunctionComponent = () => {
                     case ActionType.STAMP: {
                         const svg = document.getElementById(`${id}_svgCanvas`);
                         const base = document.getElementById(`${id}_stamp_baseline`);
-                        const visual = TurtleRender({ state: action, resource, stampId: action.id }) // TODO: 后续要换成独特的stampID
+                        const visual = TurtleRender({ action: action, resource, stampId: action.stampid ?? "" })
                         if (base && visual && svg) {
                             svg.insertBefore(visual as unknown as Node, base)
+                        }
+                        break
+                    }
+                    // The logic of the layers in the 2048 game code is structured as turtle - text - turtle - text, 
+                    // stacked in that order. 
+                    // Based on this logic, we have inserted both the text and the stamp sequentially into the stamp-base-line.
+                    case ActionType.WRITE_TEXT:{
+                        const svg = document.getElementById(`${id}_svgCanvas`);
+                        const base = document.getElementById(`${id}_stamp_baseline`);
+                        const renderer = getRenderer[action.type];
+                        const visual = renderer(action);
+
+                        if (base && visual && svg) {
+                            svg.insertBefore(visual, base)
                         }
                         break
                     }
@@ -407,10 +418,11 @@ const Screen: FunctionComponent = () => {
 
                 <svg id={`${id}_stamp_baseline`}></svg>
                 {
-                    Object.entries(turtles).map(([, state]) =>
-                        <Turtle id={id} state={state} resource={resource}/>
+                    Object.entries(turtles).map(([, action]) =>
+                        <Turtle id={id} action={action} resource={resource}/>
                     )
                 }
+                {/* <svg id={`${id}_text_baseline`}></svg> */}
             </svg>
         </div>
     );

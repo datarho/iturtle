@@ -6,24 +6,24 @@ const TURTLEHEIGHT = 20;
 const TURTLEWIDTH = 20;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-export const TurtleRender = ({ state, resource, stampId }: { state: TurtleAction, resource: ResourceProps, stampId?:string }): SVGSVGElement =>{
-    const width = TURTLEWIDTH * state.penstretchfactor[0];
-    const height = TURTLEHEIGHT * state.penstretchfactor[1];
-    const x = state.position[0] - Math.trunc(TURTLEWIDTH/2 * state.penstretchfactor[0]);
-    const y = state.position[1] - Math.trunc(TURTLEHEIGHT/2 * state.penstretchfactor[1]);
-    const heading = (-state.heading + 90) % 360; 
+export const TurtleRender = ({ action, resource, stampId }: { action: TurtleAction, resource: ResourceProps, stampId?:string }): SVGSVGElement =>{
+    const width = TURTLEWIDTH * action.penstretchfactor[0];
+    const height = TURTLEHEIGHT * action.penstretchfactor[1];
+    const x = action.position[0] - Math.trunc(TURTLEWIDTH/2 * action.penstretchfactor[0]);
+    const y = action.position[1] - Math.trunc(TURTLEHEIGHT/2 * action.penstretchfactor[1]);
+    const heading = (-action.heading + 90) % 360; 
 
     const format = (visual: any) => { 
-        visual.setAttribute('id', `turtle-id-${state.id}${stampId ?? ''}`);
-        visual.setAttribute('class', `class${state.id}`); // For fetching elements in deleting
+        visual.setAttribute('id', `turtle-id-${action.id}--${stampId ?? ''}`);
+        visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
         visual.setAttribute('x', `${x}`)
         visual.setAttribute('y', `${y}`)
         visual.setAttribute('width', `${width}`)
         visual.setAttribute('height', `${height}`)
         visual.setAttribute('overflow', 'visible')
-        visual.setAttribute('stroke', state.pencolor);
-        visual.setAttribute('stroke-width', `${state.penoutlinewidth}`);
-        visual.setAttribute('fill', state.color);
+        visual.setAttribute('stroke', action.pencolor);
+        visual.setAttribute('stroke-width', `${action.penoutlinewidth}`);
+        visual.setAttribute('fill', action.color);
     }
 
     const svg = document.createElementNS(SVG_NS, 'svg');
@@ -31,7 +31,7 @@ export const TurtleRender = ({ state, resource, stampId }: { state: TurtleAction
     const shape = document.createElementNS(SVG_NS, 'g');
 
 
-    switch (state.shape) {
+    switch (action.shape) {
         case 'arrow': {
             const path = document.createElementNS(SVG_NS, 'path');
             path.setAttribute('vector-effect', 'non-scaling-stroke');
@@ -63,8 +63,8 @@ export const TurtleRender = ({ state, resource, stampId }: { state: TurtleAction
             rect.setAttribute('vector-effect', 'non-scaling-stroke');
 
             // Remove the multiplication factor for width and height
-            rect.setAttribute('width', `${width / state.penstretchfactor[0]}`);
-            rect.setAttribute('height', `${height / state.penstretchfactor[1]}`);
+            rect.setAttribute('width', `${width / action.penstretchfactor[0]}`);
+            rect.setAttribute('height', `${height / action.penstretchfactor[1]}`);
 
             shape.appendChild(rect);
             break;
@@ -104,16 +104,16 @@ export const TurtleRender = ({ state, resource, stampId }: { state: TurtleAction
         }
 
         default:{
-            if(!state.shape) {break}
+            if(!action.shape) {break}
             let tempoShape:string = "";
-            if(state.shape?.startsWith("https")){
+            if(action.shape?.startsWith("https")){
                 const image = document.createElementNS(SVG_NS, 'image');
-                image.setAttribute('href', state.shape);
+                image.setAttribute('href', action.shape);
                 svg.setAttribute('x', `${x + 2}`);
                 svg.setAttribute('y', `${y + 2}`);
                 shape.appendChild(image);
             }else{
-                const tempoResource = resource[state.shape];
+                const tempoResource = resource[action.shape];
                 if(!tempoResource) {break};
 
                 if(tempoResource.ext === "svg"){
@@ -140,30 +140,30 @@ export const TurtleRender = ({ state, resource, stampId }: { state: TurtleAction
         }
     }
 
-    shape.setAttribute('transform', `rotate(${heading}, ${width/2}, ${height/2}), scale(${state.penstretchfactor[0]}, ${state.penstretchfactor[1]})`);
+    shape.setAttribute('transform', `rotate(${heading}, ${width/2}, ${height/2}), scale(${action.penstretchfactor[0]}, ${action.penstretchfactor[1]})`);
     svg.appendChild(shape);
     return svg;
 }
 
 
-export const Turtle: FunctionComponent<{id: string, resource:ResourceProps, state: TurtleAction}> = ( {id, resource, state} ) => {
+export const Turtle: FunctionComponent<{id: string, resource:ResourceProps, action: TurtleAction}> = ( {id, resource, action} ) => {
     const ref = useRef<SVGSVGElement>(null);
 
     useEffect(() => {
-        if(state.show){
+        if(action.show){
             const canvas = document.getElementById(`${id}_svgCanvas`);
-            const oldTurtle = document.getElementById(`turtle-id-${state.id}`);
+            const oldTurtle = document.getElementById(`turtle-id-${action.id}`);
             if (oldTurtle) {
                 oldTurtle.remove();
             }
-            const visual = TurtleRender({state, resource})
+            const visual = TurtleRender({action, resource, })
             if (ref.current && visual && canvas) {
                 canvas.insertBefore(visual, ref.current)
             }
         }else{
             ref.current?.setAttribute("display", "none")
         }
-    }, [state, id]);
+    }, [action, id]);
 
     return (
             <svg ref={ref} />

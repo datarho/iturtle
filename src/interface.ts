@@ -62,7 +62,8 @@ export interface TurtleAction {
     // Width of the pen outline
     penoutlinewidth: number;     
     // Visibility state of the turtle
-    show: boolean;       
+    show: boolean;     
+    stampid?:string;
 }
 export interface ResourceProps {
     [key:string]:{
