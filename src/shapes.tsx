@@ -7,8 +7,8 @@ const TURTLEWIDTH = 20;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export const TurtleRender = ({ action, resource, stampId }: { action: TurtleAction, resource: ResourceProps, stampId?:string }): SVGSVGElement =>{
-    const width = TURTLEWIDTH * action.penstretchfactor[0];
-    const height = TURTLEHEIGHT * action.penstretchfactor[1];
+    let width = TURTLEWIDTH*action.penstretchfactor[0];
+    let height = TURTLEHEIGHT*action.penstretchfactor[1];
     const x = action.position[0] - Math.trunc(TURTLEWIDTH/2 * action.penstretchfactor[0]);
     const y = action.position[1] - Math.trunc(TURTLEHEIGHT/2 * action.penstretchfactor[1]);
     const heading = (-action.heading + 90) % 360; 
@@ -130,17 +130,27 @@ export const TurtleRender = ({ action, resource, stampId }: { action: TurtleActi
                 }else{
                     const image = document.createElementNS(SVG_NS, 'image');
                     tempoShape = `data:${tempoResource.type}/${tempoResource.ext};base64,${tempoResource.buffer}`;
+                    
+                    const img = new Image();
+                    img.src = tempoShape;
+                    img.onload = function () {
+                        width = Math.trunc(img.width/2 * action.penstretchfactor[0])
+                        height = Math.trunc(img.height/2 * action.penstretchfactor[1])
+                        shape.setAttribute('transform', 
+                            `translate(-${width}, -${height}),rotate(${heading}, ${width}, ${height}),scale(${action.penstretchfactor[0]}, ${action.penstretchfactor[1]})`
+                        );
+                      };
+
                     image.setAttribute('href', tempoShape);
-                    svg.setAttribute('x', `${x + 2}`);
-                    svg.setAttribute('y', `${y + 2}`);
                     shape.appendChild(image);
                 }
             }
             break;
         }
     }
-
-    shape.setAttribute('transform', `rotate(${heading}, ${width/2}, ${height/2}), scale(${action.penstretchfactor[0]}, ${action.penstretchfactor[1]})`);
+    width = Math.trunc(width/2*action.penstretchfactor[0])
+    height = Math.trunc(height/2*action.penstretchfactor[1])
+    shape.setAttribute('transform', `translate(-${width}, -${height}), rotate(${heading}, ${width*1.45}, ${height*1.45}), scale(${action.penstretchfactor[0]}, ${action.penstretchfactor[1]})`);
     svg.appendChild(shape);
     return svg;
 }
@@ -152,7 +162,7 @@ export const Turtle: FunctionComponent<{id: string, resource:ResourceProps, acti
     useEffect(() => {
         if(action.show){
             const canvas = document.getElementById(`${id}_svgCanvas`);
-            const oldTurtle = document.getElementById(`turtle-id-${action.id}`);
+            const oldTurtle = document.getElementById(`turtle-id-${action.id}--`); // Remember to change former
             if (oldTurtle) {
                 oldTurtle.remove();
             }
@@ -161,7 +171,15 @@ export const Turtle: FunctionComponent<{id: string, resource:ResourceProps, acti
                 canvas.insertBefore(visual, ref.current)
             }
         }else{
-            ref.current?.setAttribute("display", "none")
+            if(ref.current){
+                ref.current.setAttribute("display", "none")
+            }
+            const oldTurtle = document.getElementById(`turtle-id-${action.id}--`); // Remember to change former
+            if(oldTurtle){
+                if (oldTurtle) {
+                    oldTurtle.remove();
+                }
+            }
         }
     }, [action, id]);
 

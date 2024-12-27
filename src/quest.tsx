@@ -13,6 +13,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 const Background: FunctionComponent<{ resource:ResourceProps, grid: boolean }> = ({ resource, grid }) => {
     const [id] = useModelState('id');
     const [url] = useModelState('bgUrl');
+    const [height] = useModelState('height');
     const [background] = useModelState('background');
     const [width] = useModelState('width');
    
@@ -24,7 +25,7 @@ const Background: FunctionComponent<{ resource:ResourceProps, grid: boolean }> =
                 </pattern>
             </defs>
 
-            <rect width='100%' height='100%' fill={`${background}`} />
+            <rect width='100%' height='100%' fill={`${background}`} viewBox={`0 0 ${width + 1} ${height + 1}`}/>
 
             {
                 grid ?
@@ -248,6 +249,7 @@ const Screen: FunctionComponent = () => {
         return visual
     }
 
+    // Placeholder
     const drawStamp = (action: TurtleAction): SVGSVGElement | undefined => {
         const visual = TurtleRender({ action: action, resource, stampId: action.stampid })
         return visual
@@ -414,6 +416,7 @@ const Screen: FunctionComponent = () => {
 
             <svg id={`${id}_svgCanvas`} ref={ref} viewBox={`0 0 ${width + 1} ${height + 1}`} xmlns='http://www.w3.org/2000/svg'>
                 <Background grid={grid} resource={resource}/>
+
                 <svg id={`${id}_baseline`}></svg>
 
                 <svg id={`${id}_stamp_baseline`}></svg>
