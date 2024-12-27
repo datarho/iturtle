@@ -16,6 +16,7 @@ def turtle_worker(*args):
   while True:
     action = action_queue.get()
     if action:
+      delay = 0.02
       if action['need_delay']:
         distance = action['distance']
         speed = action['speed']
@@ -25,8 +26,9 @@ def turtle_worker(*args):
             abs(distance) * screen.delay / (3 * 1.1 ** speed * speed),
             1
           ) * 0.05
-          time.sleep(delay)
-
+          
+      # Event no need to delay, still sleep a while
+      time.sleep(delay)
       screen.add_action(action)
   
 class ActionType(str, Enum):
@@ -38,7 +40,7 @@ class ActionType(str, Enum):
   CIRCLE = 'C'
   SOUND = 'S'
   CLEAR = 'CLR'
-  UPDATE_STATE= 'UPDATE_STATE',
+  UPDATE_STATE = 'UPDATE_STATE'
   STAMP = 'STAMP'
 
 class Turtle:
@@ -179,7 +181,7 @@ class Turtle:
       if _color is None:
         return self._color
       else:
-        self._color = _color
+        self._color = build_color(_color)
 
   def heading(self):
     return self._heading
@@ -257,7 +259,10 @@ class Turtle:
     return self._pen
   
   def pencolor(self, color):
-    self._pencolor = color
+    if color is None:
+      return self._pencolor
+    else:
+      self._pencolor = build_color(color)
     
   def pensize(self, size):
     self._pensize = size
@@ -343,26 +348,16 @@ class Turtle:
     self._add_action(ActionType.WRITE_TEXT, False)
     self.text = None
     
-  def dot(self, size, *color):
+  def dot(self, size, color):
     tmp_color = self._pencolor
     
     self._distance = 0
-    self.radius = (size / 2) if size else max((self._pensize + 4) / 2, self._pensize)
+    self._radius = (size / 2) if size else 0.5
     
-    if len(color) == 3:
-      r = self._clamp(color[0], 0, 255)
-      g = self._clamp(color[1], 0, 255)
-      b = self._clamp(color[2], 0, 255)
-      
-      self.pencolor = '#{0:02x}{1:02x}{2:02x}'.format(r, g, b)
-    else:
-      if type(color[0]) is str:
-        self.pencolor = color[0]
-      else:
-        self.pencolor = '#{0:02x}{1:02x}{2:02x}'.format(*color[0])
+    self._pencolor = build_color(color)
         
-    self._add_action(self, ActionType.DRAW_DOT)
-    self.pencolor = tmp_color
+    self._add_action(ActionType.DRAW_DOT)
+    self._pencolor = tmp_color
     
   def circle(self, radius, extent=None):
     if extent is None:
@@ -396,9 +391,6 @@ class Turtle:
   def _to_canvas_pos(self, x, y):
     return x + self.screen.width / 2, self.screen.height / 2 - y
   
-  def _clamp(self, num: int, low: int, high: int) -> int:
-    return max(low, min(num, high))
-  
   st = showturtle
   ht = hideturtle
   seth = setheading
@@ -416,3 +408,24 @@ class Turtle:
   fd = forward
   setpos = goto
   setposition = goto
+  
+def build_color(_color):
+  if type(_color) is str:
+    return _color
+  elif (type(_color) is tuple) or (type(_color) is list):
+    if len(_color) == 3:
+      # in case not in int format
+      _r, _g, _b = _color[0], _color[1], _color[2]
+      if (_r <= 1) and (_g <= 1) and (_b <= 1):
+        _r = int(_r * 255)
+        _g = int(_g * 255)
+        _b = int(_b * 255)
+
+      r = clamp(_r, 0, 255)
+      g = clamp(_g, 0, 255)
+      b = clamp(_b, 0, 255)
+    
+      return '#{0:02x}{1:02x}{2:02x}'.format(r, g, b)  
+
+def clamp(num: int, low: int, high: int) -> int:
+  return max(low, min(num, high))
