@@ -9,8 +9,8 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 export const TurtleRender = ({ action, resource, stampId }: { action: TurtleAction, resource: ResourceProps, stampId?:string }): SVGSVGElement =>{
     let width = TURTLEWIDTH*action.penstretchfactor[0];
     let height = TURTLEHEIGHT*action.penstretchfactor[1];
-    const x = action.position[0] - Math.trunc(TURTLEWIDTH/2 * action.penstretchfactor[0]);
-    const y = action.position[1] - Math.trunc(TURTLEHEIGHT/2 * action.penstretchfactor[1]);
+    const x = action.position[0];
+    const y = action.position[1];
     const heading = (-action.heading + 90) % 360; 
 
     const format = (visual: any) => { 
@@ -148,9 +148,9 @@ export const TurtleRender = ({ action, resource, stampId }: { action: TurtleActi
             break;
         }
     }
-    width = Math.trunc(width/2*action.penstretchfactor[0])
-    height = Math.trunc(height/2*action.penstretchfactor[1])
-    shape.setAttribute('transform', `translate(-${width}, -${height}), rotate(${heading}, ${width*1.45}, ${height*1.45}), scale(${action.penstretchfactor[0]}, ${action.penstretchfactor[1]})`);
+    width = Math.trunc(width/2)*1.45
+    height = Math.trunc(height/2)*1.45
+    shape.setAttribute('transform', `translate(-${width}, -${height}), rotate(${heading}, ${width}, ${height}), scale(${action.penstretchfactor[0]}, ${action.penstretchfactor[1]})`);
     svg.appendChild(shape);
     return svg;
 }
@@ -184,6 +184,6 @@ export const Turtle: FunctionComponent<{id: string, resource:ResourceProps, acti
     }, [action, id]);
 
     return (
-            <svg ref={ref} />
+        <svg ref={ref} />
     )
 }
