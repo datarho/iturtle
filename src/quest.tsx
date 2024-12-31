@@ -35,23 +35,37 @@ const Background: FunctionComponent<{ resource:ResourceProps, grid: boolean }> =
             }
         </>
 
+    const render = () => {
+        if(!url || !resource[url]){ return defaultStyle() }
+
+        if(url.startsWith('https')){
+            return <image
+                id={'background-svg'}
+                className={'svgInline'}
+                href={url}
+                width={`${width}px`}
+            />
+        }
+        const tempoResource = resource[url];
+        if(tempoResource.ext === "svg"){
+            const decoder = new TextDecoder('utf-8');
+            const decodedString = decoder.decode(tempoResource.buffer as any);
+
+            return  <svg xmlns="http://www.w3.org/2000/svg" width={`${width}px`}>
+                        <g dangerouslySetInnerHTML={{ __html: decodedString }} />
+                    </svg>
+        }
+        else{
+            return <image width={`${width}px`}
+                href={`data:${resource[url].type}/${resource[url].ext};base64,${resource[url].buffer}`}
+            />
+        }
+    }
+
     return (
         <>
             {
-                url && url.startsWith('https') ?
-                    <image
-                        id={'background-svg'}
-                        className={'svgInline'}
-                        href={url}
-                        width={`${width}px`}
-                    />
-                    :
-                    url && resource[url]?.buffer && resource[url]?.type === 'image' ?
-                        <image width="100%"
-                            href={`data:${resource[url].type}/${resource[url].ext};base64,${resource[url].buffer}`}
-                        />
-                        :
-                        defaultStyle()
+                render()
             }
         </>
     )
@@ -235,7 +249,7 @@ const Screen: FunctionComponent = () => {
 
     const writeText = (action: TurtleAction): SVGTextElement | undefined => {
         const width = getTextWidth(action.font, action.text);
-
+        console.log("x,y", `${positions.current[action.id][0]}, ${positions.current[action.id][1]}`)
         positions.current[action.id] = getTextPos(action, width) as Coord;
         const visual = document.createElementNS(SVG_NS, 'text');
         visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
@@ -249,6 +263,7 @@ const Screen: FunctionComponent = () => {
         return visual
     }
 
+    // Placeholder
     const drawStamp = (action: TurtleAction): SVGSVGElement | undefined => {
         const visual = TurtleRender({ action: action, resource, stampId: action.stampid })
         return visual

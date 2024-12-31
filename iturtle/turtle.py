@@ -9,6 +9,18 @@ from traitlets import Enum
 
 DEFAULT_HEADING = 0
 
+class ActionType(str, Enum):
+  MOVE_ABSOLUTE = 'M'
+  MOVE_RELATIVE = 'm'
+  LINE_ABSOLUTE = 'L'
+  DRAW_DOT = 'D'
+  WRITE_TEXT = 'W'
+  CIRCLE = 'C'
+  SOUND = 'S'
+  CLEAR = 'CLR'
+  UPDATE_STATE = 'UPDATE_STATE'
+  STAMP = 'STAMP'
+
 def turtle_worker(*args):
   screen = args[0]
   action_queue = args[1]
@@ -27,21 +39,9 @@ def turtle_worker(*args):
             1
           ) * 0.05
           
-      # Event no need to delay, still sleep a while
-      time.sleep(delay)
+        time.sleep(delay)
+        
       screen.add_action(action)
-  
-class ActionType(str, Enum):
-  MOVE_ABSOLUTE = 'M'
-  MOVE_RELATIVE = 'm'
-  LINE_ABSOLUTE = 'L'
-  DRAW_DOT = 'D'
-  WRITE_TEXT = 'W'
-  CIRCLE = 'C'
-  SOUND = 'S'
-  CLEAR = 'CLR'
-  UPDATE_STATE = 'UPDATE_STATE'
-  STAMP = 'STAMP'
 
 class Turtle:
   def __init__(self, screen=None):
@@ -49,11 +49,24 @@ class Turtle:
       self.screen = Screen()
     else:
       self.screen = screen
-      
+    
+    self._queue = queue.Queue()
+    
+    self._thread = threading.Thread(target=turtle_worker, args=(self.screen, self._queue))
+    self._thread.start()
+    
+    self.id = str(uuid.uuid4())
+    
+    self._init()
+    
+    self.penup()
+    self.home()
+    self.pendown()
+    
+  def _init(self):
     self._stretchfactor = (1, 1)
     self._outlinewidth = 1
     
-    self.id = str(uuid.uuid4())  
     self._x = 0
     self._y = 0
     self._canvas_position = self._to_canvas_pos(self._x, self._y)
@@ -76,16 +89,7 @@ class Turtle:
     self._align = 'left'
     self._font = ('Arial', 8, 'normal')
     
-    self._queue = queue.Queue()
-    
-    self._thread = threading.Thread(target=turtle_worker, args=(self.screen, self._queue))
-    self._thread.start()
-    
     self._add_action(ActionType.UPDATE_STATE, False)
-    
-    self.penup()
-    self.home()
-    self.pendown()
     
   def _add_action(self, action_type, need_delay=True):
     action = {
@@ -132,6 +136,10 @@ class Turtle:
   def isvisible(self):
     return self._show
   
+  def reset(self):
+    self.clear()
+    self._init()
+  
   def xcor(self):
     return self._x
   
@@ -177,11 +185,14 @@ class Turtle:
         if 0.5 < _speed < 10.5:
           self._speed = int(round(_speed))
           
-  def color(self, _color=None):
-      if _color is None:
+  def color(self, *_color):
+      if not _color:
         return self._color
       else:
-        self._color = build_color(_color)
+        self._color = build_color(*_color)
+        self._pencolor = self._color
+        
+        self._add_action(ActionType.UPDATE_STATE, False)
 
   def heading(self):
     return self._heading
@@ -258,14 +269,18 @@ class Turtle:
   def isdown(self):
     return self._pen
   
-  def pencolor(self, color):
-    if color is None:
+  def pencolor(self, *color):
+    if not color:
       return self._pencolor
     else:
-      self._pencolor = build_color(color)
+      self._pencolor = build_color(*color)
+      
+    self._add_action(ActionType.UPDATE_STATE, False)
     
   def pensize(self, size):
     self._pensize = size
+    
+    self._add_action(ActionType.UPDATE_STATE, False)
       
   # Move
   def distance(self, x, y=None):
@@ -296,13 +311,13 @@ class Turtle:
     
     self._add_action(ActionType.LINE_ABSOLUTE if self._pen else ActionType.MOVE_ABSOLUTE)
      
-  def goto(self, x, y):
+  def goto(self, x, y, need_delay=True):
     self._distance = self.distance(x, y)
     self._x = x
     self._y = y
     self._canvas_position = self._to_canvas_pos(self._x, self._y)
     
-    self._add_action(ActionType.LINE_ABSOLUTE if self._pen else ActionType.MOVE_ABSOLUTE)
+    self._add_action(ActionType.LINE_ABSOLUTE if self._pen else ActionType.MOVE_ABSOLUTE, need_delay)
     
   def teleport(self, x, y): # iturtle specific
     self._distance = 0
@@ -314,7 +329,7 @@ class Turtle:
     
   def stamp(self):
     self._stampid = str(uuid.uuid4())
-    self._add_action(ActionType.STAMP)
+    self._add_action(ActionType.STAMP, False)
     
     self._stampid = ''
     
@@ -348,13 +363,14 @@ class Turtle:
     self._add_action(ActionType.WRITE_TEXT, False)
     self.text = None
     
-  def dot(self, size, color):
+  def dot(self, size=1, color=None):
     tmp_color = self._pencolor
     
     self._distance = 0
     self._radius = (size / 2) if size else 0.5
     
-    self._pencolor = build_color(color)
+    if color is not None:
+      self._pencolor = build_color(color)
         
     self._add_action(ActionType.DRAW_DOT)
     self._pencolor = tmp_color
@@ -385,6 +401,9 @@ class Turtle:
     angle -= (radians(180) + radians(extent))
     self._x += self._radius * cos(angle)
     self._y -= self._radius * sin(angle)
+    self._canvas_position = self._to_canvas_pos(self._x, self._y)
+    
+    self._distance = self._radius * radians(abs(extent))
     
     self._add_action(ActionType.CIRCLE)
 
@@ -409,23 +428,25 @@ class Turtle:
   setpos = goto
   setposition = goto
   
-def build_color(_color):
-  if type(_color) is str:
-    return _color
-  elif (type(_color) is tuple) or (type(_color) is list):
-    if len(_color) == 3:
-      # in case not in int format
-      _r, _g, _b = _color[0], _color[1], _color[2]
-      if (_r <= 1) and (_g <= 1) and (_b <= 1):
-        _r = int(_r * 255)
-        _g = int(_g * 255)
-        _b = int(_b * 255)
+def build_color(*_color):
+  if (len(_color) == 1):
+    if type(_color[0]) is str:
+      return _color
+    elif type(_color[0]) in [list, tuple]:
+      _color = _color[0]
+  if len(_color) == 3:
+    # in case not in int format
+    _r, _g, _b = _color[0], _color[1], _color[2]
+    if (_r <= 1) and (_g <= 1) and (_b <= 1):
+      _r = int(_r * 255)
+      _g = int(_g * 255)
+      _b = int(_b * 255)
 
-      r = clamp(_r, 0, 255)
-      g = clamp(_g, 0, 255)
-      b = clamp(_b, 0, 255)
-    
-      return '#{0:02x}{1:02x}{2:02x}'.format(r, g, b)  
+    r = clamp(_r, 0, 255)
+    g = clamp(_g, 0, 255)
+    b = clamp(_b, 0, 255)
+  
+    return '#{0:02x}{1:02x}{2:02x}'.format(r, g, b)  
 
 def clamp(num: int, low: int, high: int) -> int:
   return max(low, min(num, high))
