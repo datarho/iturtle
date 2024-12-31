@@ -7,8 +7,8 @@ const TURTLEWIDTH = 20;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export const TurtleRender = ({ action, resource, stampId }: { action: TurtleAction, resource: ResourceProps, stampId?:string }): SVGSVGElement =>{
-    let width = TURTLEWIDTH*action.penstretchfactor[0];
-    let height = TURTLEHEIGHT*action.penstretchfactor[1];
+    let width = TURTLEWIDTH;
+    let height = TURTLEHEIGHT;
     const x = action.position[0];
     const y = action.position[1];
     const heading = (-action.heading + 90) % 360; 
@@ -63,8 +63,8 @@ export const TurtleRender = ({ action, resource, stampId }: { action: TurtleActi
             rect.setAttribute('vector-effect', 'non-scaling-stroke');
 
             // Remove the multiplication factor for width and height
-            rect.setAttribute('width', `${width / action.penstretchfactor[0]}`);
-            rect.setAttribute('height', `${height / action.penstretchfactor[1]}`);
+            rect.setAttribute('width', `${width}`);
+            rect.setAttribute('height', `${height}`);
 
             shape.appendChild(rect);
             break;
@@ -137,7 +137,7 @@ export const TurtleRender = ({ action, resource, stampId }: { action: TurtleActi
                         width = Math.trunc(img.width/2 * action.penstretchfactor[0])
                         height = Math.trunc(img.height/2 * action.penstretchfactor[1])
                         shape.setAttribute('transform', 
-                            `translate(-${width}, -${height}),rotate(${heading}, ${width}, ${height}),scale(${action.penstretchfactor[0]}, ${action.penstretchfactor[1]})`
+                            `translate(-${width} -${height}) rotate(${heading} ${width} ${height}) scale(${action.penstretchfactor[0]} ${action.penstretchfactor[1]})`
                         );
                       };
 
@@ -148,9 +148,9 @@ export const TurtleRender = ({ action, resource, stampId }: { action: TurtleActi
             break;
         }
     }
-    width = Math.trunc(width/2)*1.45
-    height = Math.trunc(height/2)*1.45
-    shape.setAttribute('transform', `translate(-${width}, -${height}), rotate(${heading}, ${width}, ${height}), scale(${action.penstretchfactor[0]}, ${action.penstretchfactor[1]})`);
+    const xcor = Math.trunc(width/2) * action.penstretchfactor[1]
+    const ycor = Math.trunc(height/2) * action.penstretchfactor[0]
+    shape.setAttribute('transform', `translate(-${xcor} -${ycor}) rotate(${heading} ${width} ${height}) scale(${action.penstretchfactor[0]} ${action.penstretchfactor[1]})`);
     svg.appendChild(shape);
     return svg;
 }
