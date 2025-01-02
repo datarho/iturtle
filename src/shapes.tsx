@@ -6,6 +6,34 @@ const TURTLEHEIGHT = 20;
 const TURTLEWIDTH = 20;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
+const format = (visual: any, shape: any, action: TurtleAction, stampId: string|undefined) => { 
+    let width = TURTLEWIDTH*action.penstretchfactor[0];
+    let height = TURTLEHEIGHT*action.penstretchfactor[1];
+    const x = action.position[0];
+    const y = action.position[1];
+    const heading = (-action.heading + 90) % 360; 
+    visual.setAttribute('id', `turtle-id-${action.id}-shape-${action.shape}-${stampId ?? ''}`);
+    visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
+    visual.setAttribute('x', `${x}`)
+    visual.setAttribute('y', `${y}`)
+    visual.setAttribute('width', `${width}`)
+    visual.setAttribute('height', `${height}`)
+    visual.setAttribute('overflow', 'visible')
+    visual.setAttribute('stroke', action.pencolor);
+    visual.setAttribute('stroke-width', `${action.penoutlinewidth}`);
+    visual.setAttribute('fill', action.color);
+
+    if(['arrow', "turtle", '', 'square', 'triangle', 'circle'].includes(action.shape)){
+        width = Math.trunc(width/2)
+        height = Math.trunc(height/2)
+        if(["","turtle"].includes(action.shape)){
+            width = width * 1.45
+            height = height * 1.45
+        }
+        shape.setAttribute('transform', `translate(-${width} -${height}) rotate(${heading} ${width} ${height}) scale(${action.penstretchfactor[0]} ${action.penstretchfactor[1]})`);
+    }
+}
+
 export const TurtleRender = ({ action, resource, stampId }: { action: TurtleAction, resource: ResourceProps, stampId?:string }): SVGSVGElement =>{
     let width = TURTLEWIDTH*action.penstretchfactor[0];
     let height = TURTLEHEIGHT*action.penstretchfactor[1];
@@ -13,23 +41,8 @@ export const TurtleRender = ({ action, resource, stampId }: { action: TurtleActi
     const y = action.position[1];
     const heading = (-action.heading + 90) % 360; 
 
-    const format = (visual: any) => { 
-        visual.setAttribute('id', `turtle-id-${action.id}--${stampId ?? ''}`);
-        visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
-        visual.setAttribute('x', `${x}`)
-        visual.setAttribute('y', `${y}`)
-        visual.setAttribute('width', `${width}`)
-        visual.setAttribute('height', `${height}`)
-        visual.setAttribute('overflow', 'visible')
-        visual.setAttribute('stroke', action.pencolor);
-        visual.setAttribute('stroke-width', `${action.penoutlinewidth}`);
-        visual.setAttribute('fill', action.color);
-    }
-
     const svg = document.createElementNS(SVG_NS, 'svg');
-    format(svg);
     const shape = document.createElementNS(SVG_NS, 'g');
-
 
     switch (action.shape) {
         case 'arrow': {
@@ -106,7 +119,7 @@ export const TurtleRender = ({ action, resource, stampId }: { action: TurtleActi
         default:{
             if(!action.shape) {break}
             let tempoShape:string = "";
-            if(action.shape?.startsWith("https")){
+            if(action.shape?.startsWith("https://")){
                 const image = document.createElementNS(SVG_NS, 'image');
                 image.setAttribute('href', action.shape);
                 svg.setAttribute('x', `${x + 2}`);
@@ -137,7 +150,7 @@ export const TurtleRender = ({ action, resource, stampId }: { action: TurtleActi
                         width = Math.trunc(img.width/2 * action.penstretchfactor[0])
                         height = Math.trunc(img.height/2 * action.penstretchfactor[1])
                         shape.setAttribute('transform', 
-                            `translate(-${width} -${height}) rotate(${heading} ${width} ${height}) scale(${action.penstretchfactor[0]} ${action.penstretchfactor[1]})`
+                            `translate(-${width}, -${height}),rotate(${heading}, ${width}, ${height}),scale(${action.penstretchfactor[0]}, ${action.penstretchfactor[1]})`
                         );
                       };
 
@@ -148,13 +161,17 @@ export const TurtleRender = ({ action, resource, stampId }: { action: TurtleActi
             break;
         }
     }
-    width = Math.trunc(width/2)
-    height = Math.trunc(height/2)
-    if(["","turtle"].includes(action.shape)){
-        width = width * 1.45
-        height = height * 1.45
-    }
-    shape.setAttribute('transform', `translate(-${width} -${height}) rotate(${heading} ${width} ${height}) scale(${action.penstretchfactor[0]} ${action.penstretchfactor[1]})`);
+
+    // if(['arrow', "turtle", '', 'square', 'triangle', 'circle'].includes(action.shape)){
+    //     width = Math.trunc(width/2)
+    //     height = Math.trunc(height/2)
+    //     if(["","turtle"].includes(action.shape)){
+    //         width = width * 1.45
+    //         height = height * 1.45
+    //     }
+    //     shape.setAttribute('transform', `translate(-${width} -${height}) rotate(${heading} ${width} ${height}) scale(${action.penstretchfactor[0]} ${action.penstretchfactor[1]})`);
+    // }
+    format(svg, shape, action, stampId);
     svg.appendChild(shape);
     return svg;
 }
@@ -166,19 +183,26 @@ export const Turtle: FunctionComponent<{id: string, resource:ResourceProps, acti
     useEffect(() => {
         if(action.show){
             const canvas = document.getElementById(`${id}_svgCanvas`);
-            const oldTurtle = document.getElementById(`turtle-id-${action.id}--`); // Remember to change former
-            if (oldTurtle) {
-                oldTurtle.remove();
-            }
-            const visual = TurtleRender({action, resource, })
-            if (ref.current && visual && canvas) {
-                canvas.insertBefore(visual, ref.current)
+            const currentTurtle = document.getElementById(`turtle-id-${action.id}-shape-${action.shape}-${action.stampid??""}`); // Remember to change former
+            if (currentTurtle) {
+                const g = currentTurtle.getElementsByTagNameNS(SVG_NS, 'g')?.[0];
+                if(g)
+                    format(currentTurtle, g, action, action.stampid )
+            }else{
+                const wastedTurtle =  document.getElementById(`turtle-id-${action.id}-shape--${action.stampid??""}`);
+                if(wastedTurtle){
+                    wastedTurtle.remove()
+                }
+                const visual = TurtleRender({action, resource })
+                if (ref.current && visual && canvas) {
+                    canvas.insertBefore(visual, ref.current)
+                }
             }
         }else{
             if(ref.current){
                 ref.current.setAttribute("display", "none")
             }
-            const oldTurtle = document.getElementById(`turtle-id-${action.id}--`); // Remember to change former
+            const oldTurtle = document.getElementById(`turtle-id-${action.id}-shape-${action.shape}-${action.stampid??""}`); // Remember to change former
             if(oldTurtle){
                 if (oldTurtle) {
                     oldTurtle.remove();
