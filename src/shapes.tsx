@@ -23,10 +23,10 @@ const format = (visual: any, shape: any, action: TurtleAction, stampId: string|u
     visual.setAttribute('stroke-width', `${action.penoutlinewidth}`);
     visual.setAttribute('fill', action.color);
 
-    if(['arrow', "turtle", '', 'square', 'triangle', 'circle'].includes(action.shape)){
+    if(['arrow', 'turtle', '', 'square', 'triangle', 'circle'].includes(action.shape)){
         width = Math.trunc(width/2)
         height = Math.trunc(height/2)
-        if(["","turtle"].includes(action.shape)){
+        if(['','turtle'].includes(action.shape)){
             width = width * 1.45
             height = height * 1.45
         }
@@ -118,8 +118,8 @@ export const TurtleRender = ({ action, resource, stampId }: { action: TurtleActi
 
         default:{
             if(!action.shape) {break}
-            let tempoShape:string = "";
-            if(action.shape?.startsWith("https://")){
+            let tempoShape:string = '';
+            if(action.shape?.startsWith('https://')){
                 const image = document.createElementNS(SVG_NS, 'image');
                 image.setAttribute('href', action.shape);
                 svg.setAttribute('x', `${x + 2}`);
@@ -127,9 +127,9 @@ export const TurtleRender = ({ action, resource, stampId }: { action: TurtleActi
                 shape.appendChild(image);
             }else{
                 const tempoResource = resource[action.shape];
-                if(!tempoResource) {break};
+                if(!tempoResource) {break}
 
-                if(tempoResource.ext === "svg"){
+                if(tempoResource.ext === 'svg'){
                     const decoder = new TextDecoder('utf-8');
                     const decodedString = decoder.decode(tempoResource.buffer as any);
                     const parser = new DOMParser();
@@ -162,10 +162,10 @@ export const TurtleRender = ({ action, resource, stampId }: { action: TurtleActi
         }
     }
 
-    // if(['arrow', "turtle", '', 'square', 'triangle', 'circle'].includes(action.shape)){
+    // if(['arrow', 'turtle', '', 'square', 'triangle', 'circle'].includes(action.shape)){
     //     width = Math.trunc(width/2)
     //     height = Math.trunc(height/2)
-    //     if(["","turtle"].includes(action.shape)){
+    //     if(['','turtle'].includes(action.shape)){
     //         width = width * 1.45
     //         height = height * 1.45
     //     }
@@ -190,6 +190,14 @@ export const Turtle: FunctionComponent<{id: string, resource:ResourceProps, acti
                     format(currentTurtle, g, action, action.stampid )
             }else{
                 const wastedTurtle =  document.getElementById(`turtle-id-${action.id}-shape--${action.stampid??""}`);
+            const currentTurtle = document.getElementById(`turtle-id-${action.id}-shape-${action.shape}-${action.stampid??''}`); // Remember to change former
+            if (currentTurtle) {
+                const g = currentTurtle.getElementsByTagNameNS(SVG_NS, 'g')?.[0];
+                if(g){
+                    format(currentTurtle, g, action, action.stampid )
+                }
+            }else{
+                const wastedTurtle =  document.getElementById(`turtle-id-${action.id}-shape--${action.stampid??''}`);
                 if(wastedTurtle){
                     wastedTurtle.remove()
                 }
@@ -200,9 +208,9 @@ export const Turtle: FunctionComponent<{id: string, resource:ResourceProps, acti
             }
         }else{
             if(ref.current){
-                ref.current.setAttribute("display", "none")
+                ref.current.setAttribute('display', 'none')
             }
-            const oldTurtle = document.getElementById(`turtle-id-${action.id}-shape-${action.shape}-${action.stampid??""}`); // Remember to change former
+            const oldTurtle = document.getElementById(`turtle-id-${action.id}-shape-${action.shape}-${action.stampid??''}`); // Remember to change former
             if(oldTurtle){
                 if (oldTurtle) {
                     oldTurtle.remove();
