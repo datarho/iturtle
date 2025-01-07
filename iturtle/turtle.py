@@ -216,9 +216,9 @@ class Turtle:
   
   def bgcolor(self, *args): # Same as for screen
     if len(args) == 3:
-      r = self._clamp(args[0], 0, 255)
-      g = self._clamp(args[1], 0, 255)
-      b = self._clamp(args[2], 0, 255)
+      r = clamp(args[0], 0, 255)
+      g = clamp(args[1], 0, 255)
+      b = clamp(args[2], 0, 255)
 
       self.screen.background = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
     elif len(args) == 1:
