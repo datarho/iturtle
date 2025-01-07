@@ -1,5 +1,5 @@
-import { WidgetModel } from "@jupyter-widgets/base";
-import { TurtleState } from "./widget";
+import { WidgetModel } from '@jupyter-widgets/base';
+import { TurtleState } from './widget';
 
 export type FontSpec = [family: string, size: number, weight: string];
 
@@ -15,7 +15,7 @@ export enum ActionType {
     SOUND = 'S',
     CLEAR = 'CLR',
     UPDATE_STATE = 'UPDATE_STATE',
-    STAMP = "STAMP",
+    STAMP = 'STAMP',
 }
 
 export interface TurtleAction {
@@ -47,7 +47,7 @@ export interface TurtleAction {
     text?: string;          
     // Font specifications [family, size, weight]
     font?: FontSpec;        
-    // Text alignment: "left", "center", or "right"
+    // Text alignment: 'left', 'center', or 'right'
     align?: string;         
     // Media resource identifier
     media?: string;         

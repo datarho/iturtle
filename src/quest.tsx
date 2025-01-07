@@ -47,11 +47,11 @@ const Background: FunctionComponent<{ resource:ResourceProps, grid: boolean }> =
             />
         }
         const tempoResource = resource[url];
-        if(tempoResource.ext === "svg"){
+        if(tempoResource.ext === 'svg'){
             const decoder = new TextDecoder('utf-8');
             const decodedString = decoder.decode(tempoResource.buffer as any);
 
-            return  <svg xmlns="http://www.w3.org/2000/svg" width={`${width}px`}>
+            return  <svg xmlns='http://www.w3.org/2000/svg' width={`${width}px`}>
                         <g dangerouslySetInnerHTML={{ __html: decodedString }} />
                     </svg>
         }
@@ -151,7 +151,7 @@ const Screen: FunctionComponent = () => {
         if(!action.media){return}
         let audio: HTMLAudioElement;
 
-        if(action.media?.startsWith("http")){
+        if(action.media?.startsWith('http')){
             if (currentAudio.current) {
                 currentAudio.current.pause();
                 currentAudio.current.src = '';
@@ -249,7 +249,7 @@ const Screen: FunctionComponent = () => {
 
     const writeText = (action: TurtleAction): SVGTextElement | undefined => {
         const width = getTextWidth(action.font, action.text);
-        console.log("x,y", `${positions.current[action.id][0]}, ${positions.current[action.id][1]}`)
+        console.log('x,y', `${positions.current[action.id][0]}, ${positions.current[action.id][1]}`)
         positions.current[action.id] = getTextPos(action, width) as Coord;
         const visual = document.createElementNS(SVG_NS, 'text');
         visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
@@ -348,7 +348,7 @@ const Screen: FunctionComponent = () => {
                     }
                     case ActionType.UPDATE_STATE: {
                         // const turtle = { [action.id]: ({ ...action } as unknown as TurtleState) }
-                        // console.log("turtle", turtle)
+                        // console.log('turtle', turtle)
                         // setTurtles(oldTurtles => {
                         //     const tempo = oldTurtles
                         //     tempo[action.id] = { ...action } as unknown as TurtleState
@@ -359,7 +359,7 @@ const Screen: FunctionComponent = () => {
                     case ActionType.STAMP: {
                         const svg = document.getElementById(`${id}_svgCanvas`);
                         const base = document.getElementById(`${id}_stamp_baseline`);
-                        const visual = TurtleRender({ action: action, resource, stampId: action.stampid ?? "" })
+                        const visual = TurtleRender({ action: action, resource, stampId: action.stampid ?? '' })
                         if (base && visual && svg) {
                             svg.insertBefore(visual as unknown as Node, base)
                         }
