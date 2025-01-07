@@ -183,13 +183,6 @@ export const Turtle: FunctionComponent<{id: string, resource:ResourceProps, acti
     useEffect(() => {
         if(action.show){
             const canvas = document.getElementById(`${id}_svgCanvas`);
-            const currentTurtle = document.getElementById(`turtle-id-${action.id}-shape-${action.shape}-${action.stampid??""}`); // Remember to change former
-            if (currentTurtle) {
-                const g = currentTurtle.getElementsByTagNameNS(SVG_NS, 'g')?.[0];
-                if(g)
-                    format(currentTurtle, g, action, action.stampid )
-            }else{
-                const wastedTurtle =  document.getElementById(`turtle-id-${action.id}-shape--${action.stampid??""}`);
             const currentTurtle = document.getElementById(`turtle-id-${action.id}-shape-${action.shape}-${action.stampid??''}`); // Remember to change former
             if (currentTurtle) {
                 const g = currentTurtle.getElementsByTagNameNS(SVG_NS, 'g')?.[0];
