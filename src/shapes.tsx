@@ -118,7 +118,7 @@ export const TurtleRender = ({ action, resource, stampId }: { action: TurtleActi
 
         default:{
             if(!action.shape) {break}
-            let tempoShape:string = '';
+            let tempoShape = '';
             if(action.shape?.startsWith('https://')){
                 const image = document.createElementNS(SVG_NS, 'image');
                 image.setAttribute('href', action.shape);
