@@ -93,7 +93,9 @@ class Screen(DOMWidget, HasTraits):
       
   def update(self):
     if self._tracer == 0:
-      self.actions = self._build_actions()
+      _actions = self._build_actions()
+      if len(_actions) > 0:
+        self.actions = _actions
       
   def bgcolor(self, *args): # TODO: move this to screen
     if len(args) == 3:
@@ -143,7 +145,11 @@ class Screen(DOMWidget, HasTraits):
         else:
           raise Exception(f'Unknown resource type for {file_path}')
       
-        buffer = read_file(file_path) if ext == 'svg' else file_to_base64(file_path)
+        if ext == 'svg':
+          buffer = read_file(file_path).decode('ascii')
+        else:
+          buffer = file_to_base64(file_path)
+
         self.resource = {
           'name': file_path,
           'type': _type,
