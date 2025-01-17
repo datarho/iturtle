@@ -77,8 +77,6 @@ const Background: FunctionComponent<{
     }
     const tempoResource = resource[url];
     if (tempoResource.ext === "svg") {
-      // const decoder = new TextDecoder("utf-8");
-      // const decodedString = decoder.decode(tempoResource.buffer as any);
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(
         tempoResource.buffer,
@@ -92,9 +90,7 @@ const Background: FunctionComponent<{
           xmlns="http://www.w3.org/2000/svg"
           width={`${width}px`}
           ref={backgroundRef}
-        >
-          <g dangerouslySetInnerHTML={{ __html: xmlDoc }} />
-        </svg>
+        ></svg>
       );
     } else {
       return (
@@ -411,17 +407,9 @@ const Screen: FunctionComponent = () => {
 
             const t = actions.filter((tt: TurtleAction) => tt.id !== action.id);
             sessionStorage.setItem(id.toString(), JSON.stringify(t));
-            // setActionsState(t)
             break;
           }
           case ActionType.UPDATE_STATE: {
-            // const turtle = { [action.id]: ({ ...action } as unknown as TurtleState) }
-            // console.log('turtle', turtle)
-            // setTurtles(oldTurtles => {
-            //     const tempo = oldTurtles
-            //     tempo[action.id] = { ...action } as unknown as TurtleState
-            //     return tempo
-            // })
             break;
           }
           case ActionType.STAMP: {
