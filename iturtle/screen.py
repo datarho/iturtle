@@ -144,7 +144,7 @@ class Screen(DOMWidget, HasTraits):
           _type = 'audio'
         else:
           raise Exception(f'Unknown resource type for {file_path}')
-      
+
         if ext == 'svg':
           buffer = read_file(file_path).decode('ascii')
         else:
