@@ -4,6 +4,7 @@ import { ResourceProps, TurtleAction } from "./interface";
 const TURTLEHEIGHT = 20;
 const TURTLEWIDTH = 20;
 const SVG_NS = "http://www.w3.org/2000/svg";
+const OFFICIAL_SHAPES = ["arrow", "turtle", "", "square", "triangle", "circle"];
 
 const format = (
   visual: any,
@@ -15,7 +16,9 @@ const format = (
   let height = TURTLEHEIGHT * action.penstretchfactor[1];
   const x = action.position[0];
   const y = action.position[1];
-  const heading = (-action.heading + 90) % 360;
+  const heading = OFFICIAL_SHAPES.includes(action.shape)
+    ? 0
+    : (-action.heading + 90) % 360;
   visual.setAttribute(
     "id",
     `turtle-id-${action.id}-shape-${action.shape}-${stampId ?? ""}`
@@ -157,7 +160,7 @@ export const TurtleRender = ({
       if (!action.shape) {
         break;
       }
-      let tempoShape: string = "";
+      let tempoShape = "";
       if (action.shape?.startsWith("https://")) {
         const image = document.createElementNS(SVG_NS, "image");
         image.setAttribute("href", action.shape);
@@ -171,13 +174,10 @@ export const TurtleRender = ({
         }
 
         if (tempoResource.ext === "svg") {
-          // const decoder = new TextDecoder("utf-8");
-          // const decodedString = decoder.decode(tempoResource.buffer as any);
+          const decoder = new TextDecoder("utf-8");
+          const decodedString = decoder.decode(tempoResource.buffer as any);
           const parser = new DOMParser();
-          const svgDoc = parser.parseFromString(
-            tempoResource.buffer,
-            "image/svg+xml"
-          );
+          const svgDoc = parser.parseFromString(decodedString, "image/svg+xml");
           const svgElement = svgDoc.documentElement;
 
           while (svgElement.firstChild) {
@@ -206,6 +206,15 @@ export const TurtleRender = ({
     }
   }
 
+  // if(['arrow', 'turtle', '', 'square', 'triangle', 'circle'].includes(action.shape)){
+  //     width = Math.trunc(width/2)
+  //     height = Math.trunc(height/2)
+  //     if(['','turtle'].includes(action.shape)){
+  //         width = width * 1.45
+  //         height = height * 1.45
+  //     }
+  //     shape.setAttribute('transform', `translate(-${width} -${height}) rotate(${heading} ${width} ${height}) scale(${action.penstretchfactor[0]} ${action.penstretchfactor[1]})`);
+  // }
   format(svg, shape, action, stampId);
   svg.appendChild(shape);
   return svg;
@@ -233,26 +242,15 @@ export const Turtle: FunctionComponent<{
   useEffect(() => {
     if (action.show) {
       const canvas = document.getElementById(`${id}_svgCanvas`);
-
-      // Checkout if the turtle is already in the canvas
       const currentTurtle = document.getElementById(
         `turtle-id-${action.id}-shape-${action.shape}-${action.stampid ?? ""}`
-      );
+      ); // Remember to change former
       if (currentTurtle) {
-        if (action.shape !== "") {
-          const wastedTurtle = document.getElementById(
-            `turtle-id-${action.id}-shape--${action.stampid ?? ""}`
-          );
-          if (wastedTurtle) {
-            wastedTurtle.remove();
-          }
-        }
         const g = currentTurtle.getElementsByTagNameNS(SVG_NS, "g")?.[0];
         if (g) {
           format(currentTurtle, g, action, action.stampid);
         }
       } else {
-        // Default value of action.type is ''
         const wastedTurtle = document.getElementById(
           `turtle-id-${action.id}-shape--${action.stampid ?? ""}`
         );
@@ -265,7 +263,6 @@ export const Turtle: FunctionComponent<{
         }
       }
     } else {
-      // Hide the turtle
       if (ref.current) {
         ref.current.setAttribute("display", "none");
       }
