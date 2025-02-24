@@ -367,7 +367,11 @@ class Turtle:
     tmp_color = self._pencolor
     
     self._distance = 0
-    self._radius = (size / 2) if size else 0.5
+    # self._radius = (size / 2) if size else 0.5
+    if size is None:
+      self.radius = max((self._pensize + 4) / 2, self._pensize)
+    else:
+      self._radius = (size / 2)
     
     if color is not None:
       self._pencolor = build_color(color)
