@@ -44,6 +44,34 @@ def turtle_worker(*args):
       screen.add_action(action)
 
 class Turtle:
+  @staticmethod
+  def input(prompt=''):
+    kernel = get_ipython().kernel
+    msg_header = {
+      'msg_id': kernel.session.msg_id,  # 生成唯一的消息 ID
+      'msg_type': 'input_request',         # 消息类型
+      'username': 'kernel',                # 用户名
+      'session': kernel.session.session, # 会话 ID
+      'version': '5.0'                     # 协议版本
+    }
+    kernel.session.send(
+      stream=kernel.stdin_socket,
+      msg_or_type='input_request',
+      content={'prompt':  prompt, "password": False },
+      parent=kernel.get_parent("shell"),
+      ident=kernel._parent_ident["shell"],
+      header=msg_header,
+      metadata= { 'type': 'iturtle' }
+    )
+    
+    while True:
+      msg = kernel.session.recv(kernel.stdin_socket)
+      if msg and msg[1]:
+        _msg = msg[1]
+        if _msg['msg_type'] == 'input_reply':
+          return _msg['content']['value']
+      time.sleep(2)
+  
   def __init__(self, screen=None):
     if screen is None:
       self.screen = Screen()
