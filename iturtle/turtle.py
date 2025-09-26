@@ -369,9 +369,13 @@ class Turtle:
 
   def left(self, angle):
     self._heading += angle
+    
+    self._add_action(ActionType.UPDATE_STATE, False)
 
   def right(self, angle):
     self._heading -= angle
+    
+    self._add_action(ActionType.UPDATE_STATE, False)
     
   # Draw
   def clear(self):
