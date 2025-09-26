@@ -282,7 +282,7 @@ const Screen: FunctionComponent = () => {
     visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
     visual.setAttribute(
       'd',
-      `M ${position[0]},${position[1]} A ${action.radius},${action.radius}, 0 0 ${action.clockwise} ${action.position[0]},${action.position[1]}`
+      `M ${position[0]},${position[1]} A ${action.radius},${action.radius}, 0 ${action.large_arc} ${action.clockwise} ${action.position[0]},${action.position[1]}`
     );
     visual.setAttribute('stroke', `${action.pencolor}`);
     visual.setAttribute('stroke-width', `${action.pensize}`);
