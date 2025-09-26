@@ -42,7 +42,9 @@ export interface TurtleAction {
     // Radius for circle operations
     radius: number;         
     // Direction for circle drawing: 1 for clockwise, -1 for counter-clockwise
-    clockwise: number;      
+    clockwise: number;
+    // When drawing an arc if choose the large one
+    large_arc: number;      
     // Text content for writing operations
     text?: string;          
     // Font specifications [family, size, weight]

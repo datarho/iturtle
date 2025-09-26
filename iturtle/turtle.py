@@ -110,7 +110,8 @@ class Turtle:
     self._penoutlinewidth = self._outlinewidth
     self._distance = 0
     self._radius = 0
-    self._clockwise = 1 # TODO to bool
+    self._clockwise = 1
+    self._large_arc = 0
     self._media = None
     self._shape = ''
     self._text = ''
@@ -137,6 +138,7 @@ class Turtle:
       'distance': abs(self._distance),
       'radius': self._radius,
       'clockwise': self._clockwise,
+      'large_arc': self._large_arc,
       'media': self._media,
       'shape': self._shape,
       'need_delay': need_delay
@@ -406,38 +408,60 @@ class Turtle:
         
     self._add_action(ActionType.DRAW_DOT)
     self._pencolor = tmp_color
-    
-  def circle(self, radius, extent=None):
-    if extent is None:
-      extent = 360
+  
+  '''
+  Guidelines for Drawing Circles
+  1. SVG Constraint: Due to limitations in SVG, a full circle must be rendered as two semicircular arcs.
+  2. _circle Function Behavior:
+    - The _circle function handles the rendering of individual circular arcs. Its behavior depends on the sign of the radius:
+      - Positive Radius:
+        - Arcs are drawn counterclockwise.
+        - The center is positioned 90° to the left of the current heading.
+        - The arc angle (in radians) remains positive.
+      - Negative Radius:
+        - Arcs are drawn clockwise.
+        - The center is positioned 90° to the right of the current heading.
+        - The arc angle is negated (i.e., treated as a negative value).
+    - Additional Steps:
+      - Compute the center coordinates based on the current position and heading.
+      - Determine the endpoint of the arc using the center and the specified angle.
+      - Update the current heading to reflect the new orientation after drawing the arc.
+      - If the input angle (in degrees) is greater than 180°, set the large_arc flag to 1.
+  '''
+  def circle(self, radius, extent=360):
     while extent >= 360:
       self._circle(radius, 180)
       extent -= 180
+
     if extent > 0:
       self._circle(radius, extent)
+    
+  def _circle(self, radius, extent):   
+    self._clockwise = 0 if radius > 0 else 1
+    _dir = -90 if self._clockwise else 90
+    _extent = -extent if self._clockwise else extent
+
+    
+    if radius != 0:
+      radius = abs(radius)
+      angle_to_center  = radians(self._heading + _dir)
+      extent_rad  = radians(_extent)
       
-  def _circle(self, radius, extent):
-    if radius > 0:
-      angle = radians(-self._heading - 90)
-      extent = -abs(extent)
-      self._clockwise = 0
-    else:
-      angle = radians(-self._heading + 90)
-      extent = abs(extent)
-      self.clockwise = 1
-    self._heading -= extent
-    
-    self._radius = abs(radius)
-    self._x += self._radius * cos(angle)
-    self._y -= self._radius * sin(angle)
-    angle -= (radians(180) + radians(extent))
-    self._x += self._radius * cos(angle)
-    self._y -= self._radius * sin(angle)
-    self._canvas_position = self._to_canvas_pos(self._x, self._y)
-    
-    self._distance = self._radius * radians(abs(extent))
-    
-    self._add_action(ActionType.CIRCLE)
+      delta_x = radius * cos(angle_to_center)
+      delta_y = radius * sin(angle_to_center)
+      x0 = self._x + delta_x
+      y0 = self._y + delta_y
+      
+      self._radius = abs(radius)
+      self._x = x0 + (-delta_x) * cos(extent_rad) - (-delta_y) * sin(extent_rad)
+      self._y = y0 + (-delta_x) * sin(extent_rad) + (-delta_y) * cos(extent_rad)
+      
+      self._heading += _extent
+      self._large_arc = 1 if extent > 180 else 0
+      self._distance = self._radius * radians(abs(extent))
+      self._canvas_position = self._to_canvas_pos(self._x, self._y)
+      
+      self._add_action(ActionType.CIRCLE)
 
   def _to_canvas_pos(self, x, y):
     return x + self.screen.width / 2, self.screen.height / 2 - y
