@@ -4,7 +4,8 @@ import { ResourceProps, TurtleAction } from './interface';
 const TURTLEHEIGHT = 20;
 const TURTLEWIDTH = 20;
 const SVG_NS = 'http://www.w3.org/2000/svg';
-const OFFICIAL_SHAPES = ['arrow', 'turtle', '', 'square', 'triangle', 'circle'];
+// Previously we don't change heading direction for official shapes
+// const OFFICIAL_SHAPES = ['arrow', 'turtle', '', 'square', 'triangle', 'circle'];
 
 const format = (
   visual: any,
@@ -16,9 +17,7 @@ const format = (
   let height = TURTLEHEIGHT * action.penstretchfactor[1];
   const x = action.position[0];
   const y = action.position[1];
-  const heading = OFFICIAL_SHAPES.includes(action.shape)
-    ? 0
-    : (-action.heading + 90) % 360;
+  const heading = (-action.heading + 90) % 360;
   visual.setAttribute(
     'id',
     `turtle-id-${action.id}-shape-${action.shape}-${stampId ?? ''}`
