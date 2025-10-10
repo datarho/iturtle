@@ -4,6 +4,7 @@ import time
 import uuid
 
 from .frontend import MODULE_NAME, MODULE_VERSION
+from .utils import build_color, decode_color
 from IPython.display import clear_output, display
 from ipywidgets import DOMWidget
 from traitlets import Dict, HasTraits, Int, List, Unicode, observe
@@ -42,6 +43,7 @@ class Screen(DOMWidget, HasTraits):
     super(Screen, self).__init__()
     
     self._tracer = 1 # 0 means manual mode, others as auto mode
+    self._colormode = 1.0 # or 255
     self.curr_key = None
     self._on_keys = {}
     self._framerate = SCREEN_FRAMERATE
@@ -91,21 +93,24 @@ class Screen(DOMWidget, HasTraits):
     else:
       self.stop()
       
+  def colormode(self, mode=None):
+    if mode is None:
+      return self._colormode
+    else:
+      if (mode == 1.0) or (mode == 255):
+        self._colormode = mode
+      
   def update(self):
     if self._tracer == 0:
       _actions = self._build_actions()
       if len(_actions) > 0:
         self.actions = _actions
       
-  def bgcolor(self, *args): # TODO: move this to screen
-    if len(args) == 3:
-      r = self._clamp(args[0], 0, 255)
-      g = self._clamp(args[1], 0, 255)
-      b = self._clamp(args[2], 0, 255)
-
-      self.background = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
-    elif len(args) == 1:
-      self.background = args[0]
+  def bgcolor(self, *_color):
+    if not _color:
+      return decode_color(self._colormode, self.background)
+    else:
+      self.background = build_color(self._colormode, *_color)
       
   def bgpic(self, src, reload=False):
     self.load(src, reload)

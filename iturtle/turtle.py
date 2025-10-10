@@ -4,6 +4,7 @@ import time
 import uuid
 
 from .screen import Screen
+from .utils import build_color, decode_color
 from math import atan2, cos, degrees, radians, sin, sqrt
 from traitlets import Enum
 
@@ -215,11 +216,18 @@ class Turtle:
         if 0.5 < _speed < 10.5:
           self._speed = int(round(_speed))
           
+  def colormode(self, mode=None):
+    if mode is None:
+      return self.screen.colormode()
+    else:
+      self.screen.colormode(mode)
+          
+  # Fix later to keep compatibility https://docs.python.org/3/library/turtle.html#turtle.color
   def color(self, *_color):
       if not _color:
-        return self._color
+        return decode_color(self.screen.colormode(), self._color)
       else:
-        self._color = build_color(*_color)
+        self._color = build_color(self.screen.colormode(), *_color)
         self._pencolor = self._color
         
         self._add_action(ActionType.UPDATE_STATE, False)
@@ -235,7 +243,7 @@ class Turtle:
   def towards(self, x, y=None):
     _x, _y = 0, 0
     if y is None:
-      if (type(x) is list) or (type(x) is tuple):
+      if type(x) in [list, tuple]:
         _x, _y = x[0], x[1]
       else:
         _x, _y = x, self._y
@@ -244,15 +252,11 @@ class Turtle:
       
     return degrees(atan2(_y - self._y, _x - self._x))
   
-  def bgcolor(self, *args): # Same as for screen
-    if len(args) == 3:
-      r = clamp(args[0], 0, 255)
-      g = clamp(args[1], 0, 255)
-      b = clamp(args[2], 0, 255)
-
-      self.screen.background = "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
-    elif len(args) == 1:
-      self.screen.background = args[0]
+  def bgcolor(self, *_color): # Same as for screen
+    if not _color:
+      return self.screen.bgcolor()
+    else:
+      self.screen.bgcolor(*_color)
       
   def shape(self, _shape=None, reload=False):
     if _shape not in ['circle', 'default', 'square', 'triangle', 'turtle']:
@@ -301,9 +305,9 @@ class Turtle:
   
   def pencolor(self, *color):
     if not color:
-      return self._pencolor
+      return decode_color(self.screen.colormode(), self._pencolor)
     else:
-      self._pencolor = build_color(*color)
+      self._pencolor = build_color(self.screen.colormode(), *color)
       
     self._add_action(ActionType.UPDATE_STATE, False)
     
@@ -317,7 +321,7 @@ class Turtle:
     _x, _y = 0, 0
     
     if y is None:
-      if type(x) is Turtle:
+      if (type(x) is list) or (type(x) is tuple):
         _x, _y = x._x, x._y
       elif (type(x) is list) or (type(x) is tuple):
         _x, _y = x[0], x[1]
@@ -341,7 +345,10 @@ class Turtle:
     
     self._add_action(ActionType.LINE_ABSOLUTE if self._pen else ActionType.MOVE_ABSOLUTE)
      
-  def goto(self, x, y, need_delay=True):
+  def goto(self, x, y=None, *, need_delay=True):
+    if (y == None) and (type(x) in [list, tuple]):
+      x, y = x[0], x[1]
+
     self._distance = self.distance(x, y)
     self._x = x
     self._y = y
@@ -349,7 +356,10 @@ class Turtle:
     
     self._add_action(ActionType.LINE_ABSOLUTE if self._pen else ActionType.MOVE_ABSOLUTE, need_delay)
     
-  def teleport(self, x, y): # iturtle specific
+  def teleport(self, x, y=None):
+    if (y == None) and (type(x) in [list, tuple]):
+      x, y = x[0], x[1]
+      
     self._distance = 0
     self._x = x
     self._y = y
@@ -408,7 +418,7 @@ class Turtle:
       self._radius = (size / 2)
     
     if color is not None:
-      self._pencolor = build_color(color)
+      self._pencolor = build_color(self.screen.colormode(), color)
         
     self._add_action(ActionType.DRAW_DOT)
     self._pencolor = tmp_color
@@ -487,26 +497,3 @@ class Turtle:
   fd = forward
   setpos = goto
   setposition = goto
-  
-def build_color(*_color):
-  if (len(_color) == 1):
-    if type(_color[0]) is str:
-      return _color
-    elif type(_color[0]) in [list, tuple]:
-      _color = _color[0]
-  if len(_color) == 3:
-    # in case not in int format
-    _r, _g, _b = _color[0], _color[1], _color[2]
-    if (_r <= 1) and (_g <= 1) and (_b <= 1):
-      _r = int(_r * 255)
-      _g = int(_g * 255)
-      _b = int(_b * 255)
-
-    r = clamp(_r, 0, 255)
-    g = clamp(_g, 0, 255)
-    b = clamp(_b, 0, 255)
-  
-    return '#{0:02x}{1:02x}{2:02x}'.format(r, g, b)  
-
-def clamp(num: int, low: int, high: int) -> int:
-  return max(low, min(num, high))
