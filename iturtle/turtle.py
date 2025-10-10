@@ -4,7 +4,7 @@ import time
 import uuid
 
 from .screen import Screen
-from .utils import build_color
+from .utils import build_color, decode_color
 from math import atan2, cos, degrees, radians, sin, sqrt
 from traitlets import Enum
 
@@ -222,9 +222,10 @@ class Turtle:
     else:
       self.screen.colormode(mode)
           
+  # Fix later to keep compatibility https://docs.python.org/3/library/turtle.html#turtle.color
   def color(self, *_color):
       if not _color:
-        return self._color
+        return decode_color(self.screen.colormode(), self._color)
       else:
         self._color = build_color(self.screen.colormode(), *_color)
         self._pencolor = self._color
@@ -252,7 +253,7 @@ class Turtle:
     return degrees(atan2(_y - self._y, _x - self._x))
   
   def bgcolor(self, *_color): # Same as for screen
-    if len(_color) == 0:
+    if not _color:
       return self.screen.bgcolor()
     else:
       self.screen.bgcolor(*_color)
@@ -304,7 +305,7 @@ class Turtle:
   
   def pencolor(self, *color):
     if not color:
-      return self._pencolor
+      return decode_color(self.screen.colormode(), self._pencolor)
     else:
       self._pencolor = build_color(self.screen.colormode(), *color)
       

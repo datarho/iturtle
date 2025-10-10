@@ -4,7 +4,7 @@ import time
 import uuid
 
 from .frontend import MODULE_NAME, MODULE_VERSION
-from .utils import build_color
+from .utils import build_color, decode_color
 from IPython.display import clear_output, display
 from ipywidgets import DOMWidget
 from traitlets import Dict, HasTraits, Int, List, Unicode, observe
@@ -107,8 +107,8 @@ class Screen(DOMWidget, HasTraits):
         self.actions = _actions
       
   def bgcolor(self, *_color):
-    if len(_color) == 0:
-      return self.background
+    if not _color:
+      return decode_color(self._colormode, self.background)
     else:
       self.background = build_color(self._colormode, *_color)
       
