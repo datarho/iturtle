@@ -322,6 +322,15 @@ const Screen: FunctionComponent = () => {
     return visual;
   };
 
+  const done = (action: TurtleAction): SVGSVGElement | undefined => {
+    const visual = TurtleRender({
+      action: action,
+      resource,
+      stampId: action.stampid,
+    });
+    return visual;
+  };
+
   const clear = (action: TurtleAction): undefined => {
     return undefined;
   };
@@ -348,6 +357,7 @@ const Screen: FunctionComponent = () => {
     [ActionType.CLEAR]: clear,
     [ActionType.UPDATE_STATE]: updateState,
     [ActionType.STAMP]: drawStamp,
+    [ActionType.DONE]: done,
   };
 
   const takePicture = () => {
@@ -449,6 +459,9 @@ const Screen: FunctionComponent = () => {
             if (base && visual && svg) {
               svg.insertBefore(visual, base);
             }
+            break;
+          }
+          case ActionType.DONE: {
             break;
           }
           default: {

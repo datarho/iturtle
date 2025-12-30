@@ -16,6 +16,7 @@ export enum ActionType {
     CLEAR = 'CLR',
     UPDATE_STATE = 'UPDATE_STATE',
     STAMP = 'STAMP',
+    DONE = 'DONE'
 }
 
 export interface TurtleAction {

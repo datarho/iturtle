@@ -8,6 +8,8 @@ from .utils import build_color, decode_color
 from math import atan2, cos, degrees, radians, sin, sqrt
 from traitlets import Enum
 
+LIVE_TURTLES = set()
+
 DEFAULT_HEADING = 0
 
 class ActionType(str, Enum):
@@ -21,13 +23,13 @@ class ActionType(str, Enum):
   CLEAR = 'CLR'
   UPDATE_STATE = 'UPDATE_STATE'
   STAMP = 'STAMP'
+  DONE = 'DONE'
 
 def turtle_worker(*args):
-  screen = args[0]
-  action_queue = args[1]
+  turtle = args[0]
   
-  while True:
-    action = action_queue.get()
+  while (not turtle.stop_event.is_set()) or (turtle._queue.qsize() > 0):
+    action = turtle._queue.get()
     if action:
       delay = 0.02
       if action['need_delay']:
@@ -36,13 +38,15 @@ def turtle_worker(*args):
         
         if speed < 10:
           delay = max(
-            abs(distance) * screen.delay / (3 * 1.1 ** speed * speed),
+            abs(distance) * turtle.screen.delay / (3 * 1.1 ** speed * speed),
             1
           ) * 0.05
           
         time.sleep(delay)
         
-      screen.add_action(action)
+      turtle.screen.add_action(action)
+      
+  LIVE_TURTLES.remove(turtle)
 
 class Turtle:
   @staticmethod
@@ -79,9 +83,10 @@ class Turtle:
     else:
       self.screen = screen
     
+    self.stop_event = threading.Event()
     self._queue = queue.Queue()
     
-    self._thread = threading.Thread(target=turtle_worker, args=(self.screen, self._queue))
+    self._thread = threading.Thread(target=turtle_worker, args=(self,))
     self._thread.start()
     
     self.id = str(uuid.uuid4())
@@ -91,6 +96,8 @@ class Turtle:
     self.penup()
     self.home()
     self.pendown()
+    
+    LIVE_TURTLES.add(self)
     
   def _init(self):
     self._stretchfactor = (1, 1)
@@ -121,37 +128,55 @@ class Turtle:
     
     self._add_action(ActionType.UPDATE_STATE, False)
     
-  def _add_action(self, action_type, need_delay=True):
-    action = {
-      'id': self.id,
-      'type': action_type,
-      'position': self._canvas_position,
-      'speed': self._speed,
-      'color': self._color,
-      'heading': self._heading,
-      "show": self._show,
-      'stampid': self._stampid,
-      'pen': self._pen,
-      'pencolor': self._pencolor,
-      'pensize': self._pensize,
-      'penstretchfactor': self._penstretchfactor,
-      'penoutlinewidth': self._penoutlinewidth,
-      'distance': abs(self._distance),
-      'radius': self._radius,
-      'clockwise': self._clockwise,
-      'large_arc': self._large_arc,
-      'media': self._media,
-      'shape': self._shape,
-      'need_delay': need_delay
-    }
+  def done(self):
+    live_turtles = list(LIVE_TURTLES)
     
-    if (action_type == ActionType.WRITE_TEXT) and self._text:
-      action['text'] = self._text
-      action["font"] = self._font
-      action["align"] = self._align    
+    for t in live_turtles:
+      t._done()
       
-    # self.screen.add_action(action)
-    self._queue.put(action)
+    while len(LIVE_TURTLES) > 0:
+      time.sleep(1)
+      
+    for t in live_turtles:
+      t.screen.stop()
+    
+  def _done(self):
+    self._add_action(ActionType.DONE, False)
+    
+    self.stop_event.set()
+    
+  def _add_action(self, action_type, need_delay=True):
+    if not self.stop_event.is_set():
+      action = {
+        'id': self.id,
+        'type': action_type,
+        'position': self._canvas_position,
+        'speed': self._speed,
+        'color': self._color,
+        'heading': self._heading,
+        "show": self._show,
+        'stampid': self._stampid,
+        'pen': self._pen,
+        'pencolor': self._pencolor,
+        'pensize': self._pensize,
+        'penstretchfactor': self._penstretchfactor,
+        'penoutlinewidth': self._penoutlinewidth,
+        'distance': abs(self._distance),
+        'radius': self._radius,
+        'clockwise': self._clockwise,
+        'large_arc': self._large_arc,
+        'media': self._media,
+        'shape': self._shape,
+        'need_delay': need_delay
+      }
+      
+      if (action_type == ActionType.WRITE_TEXT) and self._text:
+        action['text'] = self._text
+        action["font"] = self._font
+        action["align"] = self._align    
+        
+      # self.screen.add_action(action)
+      self._queue.put(action)
     
   # State
   def showturtle(self):
