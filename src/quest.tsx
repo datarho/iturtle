@@ -362,7 +362,7 @@ const Screen: FunctionComponent = () => {
       path.setAttribute('d', `${currentD} Z`);
     }
   
-    fillPathRef.current = null; // 清空引用，表示填充结束
+    fillPathRef.current = null; // Clear the reference, fill finished
 
     return path;
   }
