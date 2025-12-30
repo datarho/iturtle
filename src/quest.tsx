@@ -124,6 +124,7 @@ const Screen: FunctionComponent = () => {
   const [grid, setGrid] = useState(true);
   const ref = useRef<SVGSVGElement | null>(null);
   const positions = useRef<Record<string, Coord>>({});
+  const fillPathRef = useRef<SVGPathElement | null>(null);
 
   useEffect(() => {
     const saved = sessionStorage.getItem(id.toString());
@@ -243,6 +244,13 @@ const Screen: FunctionComponent = () => {
 
   const lineAbsolute = (action: TurtleAction): SVGLineElement | undefined => {
     if (action.pen) {
+      if (action.fill_mode && fillPathRef.current) {
+        const currentD = fillPathRef.current.getAttribute('d') || '';
+        const [x, y] = action.position;
+      
+        fillPathRef.current.setAttribute('d', `${currentD} L ${x},${y}`);
+      }
+
       const position = positions.current[action.id] ?? [width / 2, height / 2];
 
       const visual = document.createElementNS(
@@ -278,11 +286,20 @@ const Screen: FunctionComponent = () => {
 
   const drawCircle = (action: TurtleAction): SVGPathElement | undefined => {
     const position = positions.current[action.id] ?? [width / 2, height / 2];
+
+    // Command to draw arc
+    const arcCommand = `A ${action.radius},${action.radius} 0 ${action.large_arc} ${action.clockwise} ${action.position[0]},${action.position[1]}`;
+
+    if (action.fill_mode && fillPathRef.current) {
+      const currentD = fillPathRef.current.getAttribute('d') || '';
+      fillPathRef.current.setAttribute('d', `${currentD} ${arcCommand}`);
+    }
+
     const visual = document.createElementNS(SVG_NS, 'path');
     visual.setAttribute('class', `class${action.id}`); // For fetching elements in deleting
     visual.setAttribute(
       'd',
-      `M ${position[0]},${position[1]} A ${action.radius},${action.radius}, 0 ${action.large_arc} ${action.clockwise} ${action.position[0]},${action.position[1]}`
+      `M ${position[0]},${position[1]} ${arcCommand}`
     );
     visual.setAttribute('stroke', `${action.pencolor}`);
     visual.setAttribute('stroke-width', `${action.pensize}`);
@@ -322,6 +339,34 @@ const Screen: FunctionComponent = () => {
     return visual;
   };
 
+  const beginFill = (action: TurtleAction): SVGPathElement | undefined => {
+    const path = document.createElementNS(SVG_NS, 'path');
+  
+    path.setAttribute('fill', action.color || 'black');
+    path.setAttribute('stroke', 'none');
+    path.setAttribute('class', 'fill-path');
+  
+    // Set init position
+    const startPos = positions.current[action.id] ?? [width / 2, height / 2];
+    path.setAttribute('d', `M ${startPos[0]},${startPos[1]}`);
+    fillPathRef.current = path;
+
+    return path;
+  }
+
+  const endFill = (action: TurtleAction): SVGPathElement | null => {
+    const path = fillPathRef.current;
+    if (path) {
+      const currentD = path.getAttribute('d') || '';
+      // Use Z to close the path
+      path.setAttribute('d', `${currentD} Z`);
+    }
+  
+    fillPathRef.current = null; // 清空引用，表示填充结束
+
+    return path;
+  }
+
   const done = (action: TurtleAction): SVGSVGElement | undefined => {
     const visual = TurtleRender({
       action: action,
@@ -346,6 +391,7 @@ const Screen: FunctionComponent = () => {
       | SVGCircleElement
       | SVGTextElement
       | undefined
+      | null
   > = {
     [ActionType.MOVE_ABSOLUTE]: moveAbsolute,
     [ActionType.MOVE_RELATIVE]: moveRelative,
@@ -357,6 +403,8 @@ const Screen: FunctionComponent = () => {
     [ActionType.CLEAR]: clear,
     [ActionType.UPDATE_STATE]: updateState,
     [ActionType.STAMP]: drawStamp,
+    [ActionType.BEGIN_FILL]: beginFill,
+    [ActionType.END_FILL]: endFill,
     [ActionType.DONE]: done,
   };
 
@@ -458,6 +506,23 @@ const Screen: FunctionComponent = () => {
 
             if (base && visual && svg) {
               svg.insertBefore(visual, base);
+            }
+            break;
+          }
+          case ActionType.BEGIN_FILL:{
+            const renderer = getRenderer[action.type];
+            renderer(action)
+
+            break
+          }
+          case ActionType.END_FILL: {
+            const svg = document.getElementById(`${id}_svgCanvas`);
+            const base = document.getElementById(`${id}_baseline`);
+            const renderer = getRenderer[action.type];
+            const visual = renderer(action); // Get the fill polygon
+
+            if (svg && base && visual) {
+              svg.insertBefore(visual as unknown as Node, base);
             }
             break;
           }
