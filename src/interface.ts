@@ -16,6 +16,9 @@ export enum ActionType {
     CLEAR = 'CLR',
     UPDATE_STATE = 'UPDATE_STATE',
     STAMP = 'STAMP',
+    DONE = 'DONE',
+    BEGIN_FILL = 'BEGIN_FILL',
+    END_FILL = 'END_FILL'
 }
 
 export interface TurtleAction {
@@ -66,6 +69,8 @@ export interface TurtleAction {
     // Visibility state of the turtle
     show: boolean;     
     stampid?:string;
+    fill_mode:boolean,
+    fill_start_position:number[];
 }
 export interface ResourceProps {
     [key:string]:{
