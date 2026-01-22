@@ -192,6 +192,7 @@ class Turtle:
     self._show = False
     
     self._add_action(ActionType.UPDATE_STATE, False)
+    self._add_action(ActionType.DONE, False)
     
   def isvisible(self):
     return self._show
