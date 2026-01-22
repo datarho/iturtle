@@ -2,6 +2,7 @@ import threading
 
 from .turtle import Turtle, Screen
 from .version import __version__, version_info
+from .wrapper import *
 
 def ontimer(delay, fn):
   timer = threading.Timer(delay, fn)
