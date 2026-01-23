@@ -34,7 +34,7 @@ def turtle_worker(*args):
   
   while not stop_event.is_set():
     try:
-      action = queue.get(block=True, timeout=5)
+      action = queue.get(block=True, timeout=3)
       if action:
         delay = 0.02
         if action['need_delay']:
