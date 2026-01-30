@@ -1,5 +1,6 @@
 import queue
 import threading
+import sys
 import time
 import uuid
 
@@ -8,8 +9,7 @@ from .utils import build_color, decode_color
 from math import atan2, cos, degrees, radians, sin, sqrt
 from traitlets import Enum
 
-LIVE_TURTLES = set()
-
+ACTIVE_TURTLES = set()
 DEFAULT_HEADING = 0
 
 class ActionType(str, Enum):
@@ -28,38 +28,48 @@ class ActionType(str, Enum):
   DONE = 'DONE'
 
 def turtle_worker(*args):
-  turtle = args[0]
+  screen = args[0]
+  queue = args[1]
+  stop_event = args[2]
   
-  while (not turtle.stop_event.is_set()) or (turtle._queue.qsize() > 0):
-    action = turtle._queue.get()
-    if action:
-      delay = 0.02
-      if action['need_delay']:
-        distance = action['distance']
-        speed = action['speed']
-        
-        if speed < 10:
-          delay = max(
-            abs(distance) * turtle.screen.delay / (3 * 1.1 ** speed * speed),
-            1
-          ) * 0.05
+  while not stop_event.is_set():
+    try:
+      action = queue.get(block=True, timeout=3)
+      if action:
+        delay = 0.02
+        if action['need_delay']:
+          distance = action['distance']
+          speed = action['speed']
           
-        time.sleep(delay)
-        
-      turtle.screen.add_action(action)
-      
-  LIVE_TURTLES.remove(turtle)
+          if speed < 10:
+            delay = max(
+              abs(distance) * screen.delay / (3 * 1.1 ** speed * speed),
+              1
+            ) * 0.05
+            
+          time.sleep(delay)
 
+        screen.add_action(action)
+    except Exception:
+      pass
+
+def set_active(func):
+  def wrapper(*args, **kwargs):
+    ACTIVE_TURTLES.add(args[0])
+        
+    return func(*args, **kwargs)
+  return wrapper
+  
 class Turtle:
   @staticmethod
   def input(prompt=''):
     kernel = get_ipython().kernel
     msg_header = {
-      'msg_id': kernel.session.msg_id,  # 生成唯一的消息 ID
-      'msg_type': 'input_request',         # 消息类型
-      'username': 'kernel',                # 用户名
+      'msg_id': kernel.session.msg_id,   # 生成唯一的消息 ID
+      'msg_type': 'input_request',       # 消息类型
+      'username': 'kernel',              # 用户名
       'session': kernel.session.session, # 会话 ID
-      'version': '5.0'                     # 协议版本
+      'version': '5.0'                   # 协议版本
     }
     kernel.session.send(
       stream=kernel.stdin_socket,
@@ -88,7 +98,7 @@ class Turtle:
     self.stop_event = threading.Event()
     self._queue = queue.Queue()
     
-    self._thread = threading.Thread(target=turtle_worker, args=(self,))
+    self._thread = threading.Thread(target=turtle_worker, args=(self.screen, self._queue, self.stop_event))
     self._thread.start()
     
     self.id = str(uuid.uuid4())
@@ -99,7 +109,7 @@ class Turtle:
     self.home()
     self.pendown()
     
-    LIVE_TURTLES.add(self)
+    ACTIVE_TURTLES.add(self)
     
   def _init(self):
     self._stretchfactor = (1, 1)
@@ -131,22 +141,12 @@ class Turtle:
     
     self._add_action(ActionType.UPDATE_STATE, False)
     
-  def done(self):
-    live_turtles = list(LIVE_TURTLES)
-    
-    for t in live_turtles:
-      t._done()
-      
-    while len(LIVE_TURTLES) > 0:
-      time.sleep(1)
-      
-    for t in live_turtles:
-      t.screen.stop()
-    
-  def _done(self):
-    self._add_action(ActionType.DONE, False)
-    
+  def __del__(self):
     self.stop_event.set()
+    self._thread.join()
+    
+  def done(self):
+    self._add_action(ActionType.DONE, False)
     
   def _add_action(self, action_type, need_delay=True):
     if not self.stop_event.is_set():
@@ -182,21 +182,22 @@ class Turtle:
       # self.screen.add_action(action)
       self._queue.put(action)
     
-  # State
+  @set_active
   def showturtle(self):
     self._show = True
     
     self._add_action(ActionType.UPDATE_STATE, False)
     
+  @set_active
   def hideturtle(self):
     self._show = False
     
     self._add_action(ActionType.UPDATE_STATE, False)
-    self._add_action(ActionType.DONE, False)
     
   def isvisible(self):
     return self._show
   
+  @set_active
   def reset(self):
     self.clear()
     self._init()
@@ -207,18 +208,17 @@ class Turtle:
   def ycor(self):
     return self._y
   
-  def pos(self):
-    return self.position()
-  
   def position(self):
     return (self._x, self._y)
-  
+
+  @set_active
   def setx(self, x):
     self._x = x
     self._canvas_position = self._to_canvas_pos(self._x, self._y)
     
     self._add_action(ActionType.UPDATE_STATE, False)
-    
+
+  @set_active
   def sety(self, y):
     self._y = y
     self._canvas_position = self._to_canvas_pos(self._x, self._y)
@@ -245,13 +245,13 @@ class Turtle:
       else:
         if 0.5 < _speed < 10.5:
           self._speed = int(round(_speed))
-          
+
   def colormode(self, mode=None):
     if mode is None:
       return self.screen.colormode()
     else:
       self.screen.colormode(mode)
-          
+
   def color(self, *_color):
       if not _color:
         return decode_color(self.screen.colormode(), self._color)
@@ -267,7 +267,7 @@ class Turtle:
           self._pencolor = self._color
         
         self._add_action(ActionType.UPDATE_STATE, False)
-        
+
   def fillcolor(self, *_color):
     if not _color:
       return decode_color(self.screen.colormode(), self._color)
@@ -278,12 +278,14 @@ class Turtle:
 
   def heading(self):
     return self._heading
-    
+
+  @set_active
   def setheading(self, angle):
     self._heading = (angle + 360) % 360
     
     self._add_action(ActionType.UPDATE_STATE, False)
 
+  @set_active
   def towards(self, x, y=None):
     _x, _y = 0, 0
     if y is None:
@@ -295,13 +297,15 @@ class Turtle:
       _x, _y = x, y
       
     return degrees(atan2(_y - self._y, _x - self._x))
-  
+
+  @set_active
   def bgcolor(self, *_color): # Same as for screen
     if not _color:
       return self.screen.bgcolor()
     else:
       self.screen.bgcolor(*_color)
-      
+
+  @set_active
   def shape(self, _shape=None, reload=False):
     if _shape not in ['circle', 'default', 'square', 'triangle', 'turtle']:
       self.screen.load(_shape, reload)
@@ -312,7 +316,8 @@ class Turtle:
       self._shape = _shape
       
     self._add_action(ActionType.UPDATE_STATE, False)
-    
+
+  @set_active
   def shapesize(self, stretch_wid=None, stretch_len=None, outline=None):
     if stretch_wid is stretch_len is outline is None:
       stretch_wid, stretch_len = self._stretchfactor
@@ -333,12 +338,12 @@ class Turtle:
       self._penoutlinewidth = self._outlinewidth
     else:
       self._penoutlinewidth = outline
-      
+
   def penup(self):
     self._pen = False
     
     self._add_action(ActionType.UPDATE_STATE, False)
-    
+
   def pendown(self):
     self._pen = True
     
@@ -346,7 +351,7 @@ class Turtle:
   
   def isdown(self):
     return self._pen
-  
+
   def pencolor(self, *color):
     if not color:
       return decode_color(self.screen.colormode(), self._pencolor)
@@ -354,13 +359,12 @@ class Turtle:
       self._pencolor = build_color(self.screen.colormode(), *color)
       
     self._add_action(ActionType.UPDATE_STATE, False)
-    
+
   def pensize(self, size):
     self._pensize = size
     
     self._add_action(ActionType.UPDATE_STATE, False)
-      
-  # Move
+
   def distance(self, x, y=None):
     _x, _y = 0, 0
     
@@ -375,10 +379,12 @@ class Turtle:
       _x, _y = x, y
       
     return sqrt((self._x - _x) ** 2 + (self._y - _y) ** 2)
-    
+
+  @set_active
   def backward(self, distance):
     self.forward(-distance)
     
+  @set_active
   def forward(self, distance):
     angle = radians(self._heading)
     
@@ -388,7 +394,8 @@ class Turtle:
     self._distance = distance
     
     self._add_action(ActionType.LINE_ABSOLUTE if self._pen else ActionType.MOVE_ABSOLUTE)
-     
+
+  @set_active
   def goto(self, x, y=None, *, need_delay=True):
     if (y == None) and (type(x) in [list, tuple]):
       x, y = x[0], x[1]
@@ -399,7 +406,8 @@ class Turtle:
     self._canvas_position = self._to_canvas_pos(self._x, self._y)
     
     self._add_action(ActionType.LINE_ABSOLUTE if self._pen else ActionType.MOVE_ABSOLUTE, need_delay)
-    
+
+  @set_active
   def teleport(self, x, y=None):
     if (y == None) and (type(x) in [list, tuple]):
       x, y = x[0], x[1]
@@ -410,31 +418,36 @@ class Turtle:
     self._canvas_position = self._to_canvas_pos(self._x, self._y)
     
     self._add_action(ActionType.MOVE_ABSOLUTE)
-    
+
+  @set_active
   def stamp(self):
     self._stampid = str(uuid.uuid4())
     self._add_action(ActionType.STAMP, False)
     
     self._stampid = ''
-    
+
+  @set_active
   def home(self):
     self._heading = DEFAULT_HEADING
     self.goto(0, 0)
 
+  @set_active
   def left(self, angle):
     self._heading += angle
     
     self._add_action(ActionType.UPDATE_STATE, False)
 
+  @set_active
   def right(self, angle):
     self._heading -= angle
     
     self._add_action(ActionType.UPDATE_STATE, False)
     
-  # Draw
+  @set_active
   def clear(self):
     self._add_action(ActionType.CLEAR, False)
-    
+
+  @set_active
   def play(self, sound, reload=False): # iturtle specific
     self.screen.load(sound, reload)
     
@@ -442,7 +455,8 @@ class Turtle:
     self._distance = 0
     self._add_action( ActionType.SOUND, False)
     self._media = None
-    
+
+  @set_active
   def write(self, arg, move=False, align='left', font=("Arial", 8, "normal")):
     self._text = str(arg)
     self._align = align.lower()
@@ -450,7 +464,8 @@ class Turtle:
     self._distance = 0
     self._add_action(ActionType.WRITE_TEXT, False)
     self.text = None
-    
+
+  @set_active
   def dot(self, size=1, color=None):
     tmp_color = self._pencolor
     
@@ -486,6 +501,7 @@ class Turtle:
       - Update the current heading to reflect the new orientation after drawing the arc.
       - If the input angle (in degrees) is greater than 180°, set the large_arc flag to 1.
   '''
+  @set_active
   def circle(self, radius, extent=360):
     while extent >= 360:
       self._circle(radius, 180)
@@ -519,12 +535,14 @@ class Turtle:
       self._canvas_position = self._to_canvas_pos(self._x, self._y)
       
       self._add_action(ActionType.CIRCLE)
-      
+
+  @set_active
   def begin_fill(self):
     self._fill_mode = True
     
     self._add_action(ActionType.BEGIN_FILL)
-  
+
+  @set_active
   def end_fill(self):
     self._fill_mode = False
     
@@ -544,9 +562,19 @@ class Turtle:
   pd = pendown
   down = pendown
   width = pensize
+  pos = position
 
   bk = backward
   back = backward
   fd = forward
   setpos = goto
   setposition = goto
+
+def done():
+  screens = set()
+  for t in ACTIVE_TURTLES:
+    if t.screen not in screens:
+      t.done()
+      screens.add(t.screen)
+
+  ACTIVE_TURTLES.clear()

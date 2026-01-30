@@ -1,6 +1,6 @@
 import threading
 
-from .turtle import Turtle, Screen
+from .turtle import ACTIVE_TURTLES, Turtle, Screen, done
 from .version import __version__, version_info
 from .wrapper import *
 

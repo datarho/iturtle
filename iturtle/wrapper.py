@@ -1,6 +1,6 @@
 from functools import wraps
 
-from .turtle import LIVE_TURTLES, Screen, Turtle
+from .turtle import Screen, Turtle, done
 
 
 default_screen = None
@@ -49,18 +49,6 @@ def turtle_method(func):
                 return method(*args, **kwargs)
         return None
     return wrapper
-
-# done needs to be handled specifically
-def done():
-  global default_turtle
-  
-  if default_turtle:
-    default_turtle.done()
-    return
-    
-  for t in list(LIVE_TURTLES):
-    t.done()
-    break
 
 @turtle_method
 def showturtle():
